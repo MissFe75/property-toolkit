@@ -516,17 +516,17 @@ if page == "🏠 Property Analyzer":
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("**Income**")
-            st.write(f"Gross annual rent: {fmt(annual_rent_gross)}")
-            st.write(f"Less vacancy ({vacancy_rate:.1f}%): ({fmt(annual_rent_gross - annual_rent)})")
-            st.write(f"**Effective annual rent: {fmt(annual_rent)}**")
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Gross annual rent: {fmt(annual_rent_gross)}</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Less vacancy ({vacancy_rate:.1f}%): ({fmt(annual_rent_gross - annual_rent)})</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'><strong style='color:#f1f5f9;'>Effective annual rent: {fmt(annual_rent)}</strong></span>", unsafe_allow_html=True)
         with col2:
             st.markdown("**Costs**")
-            st.write(f"Annual interest: ({fmt(annual_interest)})")
-            st.write(f"Annual expenses: ({fmt(annual_expenses)})")
-            st.write(f"Year 1 depreciation: ({fmt(year1_dep)})")
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Annual interest: ({fmt(annual_interest)})</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Annual expenses: ({fmt(annual_expenses)})</span>", unsafe_allow_html=True)
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Year 1 depreciation: ({fmt(year1_dep)})</span>", unsafe_allow_html=True)
         st.divider()
-        st.write(f"Taxable property income: **{fmt(taxable_prop)}**")
-        st.write(f"Marginal tax rate ({entity}): **{marg*100:.0f}%**")
+        st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Taxable property income: <strong style='color:#f1f5f9;'>{fmt(taxable_prop)}</strong></span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Marginal tax rate ({entity}): <strong style='color:#f1f5f9;'>{marg*100:.0f}%</strong></span>", unsafe_allow_html=True)
         if tax_benefit > 0:
             st.markdown(f'<div class="insight-box"><strong>Negative gearing benefit: {fmt(tax_benefit)}/yr</strong><br><span>At your marginal rate of {marg*100:.0f}%, the ATO effectively subsidises your shortfall.</span></div>', unsafe_allow_html=True)
         st.markdown(f"<p style='font-family:Space Grotesk,sans-serif;color:#f1f5f9;font-weight:600;'>After-tax cashflow (Year 1): {fmt(cashflow_aftertax)}/yr ({fmt(cashflow_aftertax/52)}/wk)</p>", unsafe_allow_html=True)
@@ -534,8 +534,8 @@ if page == "🏠 Property Analyzer":
     with st.expander(f"🏛️ Stamp Duty — {state}"):
         st.metric("Stamp duty payable", fmt(stamp_duty))
         total_upfront = stamp_duty + equity
-        st.write(f"Deposit: {fmt(equity)}")
-        st.write(f"**Total upfront cash required: {fmt(total_upfront)}**")
+        st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Deposit: {fmt(equity)}</span>", unsafe_allow_html=True)
+        st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'><strong style='color:#f1f5f9;'>Total upfront cash required: {fmt(total_upfront)}</strong></span>", unsafe_allow_html=True)
         st.caption(f"Indicative only — confirm with your conveyancer.")
 
     with st.expander("📐 Break-Even Rent Finder"):
@@ -563,7 +563,7 @@ if page == "🏠 Property Analyzer":
         for col in ["Principal", "Interest", "Balance"]:
             annual_summary[col] = annual_summary[col].map("${:,.0f}".format)
         st.dataframe(annual_summary.set_index("Year"), use_container_width=True)
-        st.write(f"Total interest over {int(loan_term)} years: **{fmt(amort_df['Interest'].sum())}**")
+        st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Total interest over {int(loan_term)} years: <strong style='color:#f1f5f9;'>{fmt(amort_df['Interest'].sum())}</strong></span>", unsafe_allow_html=True)
 
     with st.expander("📈 CGT Estimator"):
         col1, col2, col3 = st.columns(3)
@@ -732,7 +732,7 @@ elif page == "📐 Mortgage Calculator":
             for col in ["Principal", "Interest", "Balance"]:
                 annual_summary[col] = annual_summary[col].map("${:,.0f}".format)
             st.dataframe(annual_summary.set_index("Year"), use_container_width=True)
-            st.write(f"Total interest over loan term: **{fmt(amort_df_full['Interest'].sum())}**")
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Total interest over loan term: <strong style='color:#f1f5f9;'>{fmt(amort_df_full['Interest'].sum())}</strong></span>", unsafe_allow_html=True)
 
     else:
         st.info("Enter loan details above to see results.")
@@ -806,4 +806,4 @@ elif page == "📊 Yield Calculator":
             breakeven = annual_expenses / 52
             surplus = weekly_rent - breakeven
             st.metric("Break-even weekly rent (expenses only)", f"{fmt(breakeven)}/wk")
-            st.write(f"Your rent vs break-even: **{surplus:+,.0f}/wk** {'✅' if surplus >= 0 else '❌'}")
+            st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Your rent vs break-even: <strong style='color:#f1f5f9;'>{surplus:+,.0f}/wk</strong> {'✅' if surplus >= 0 else '❌'}</span>", unsafe_allow_html=True)
