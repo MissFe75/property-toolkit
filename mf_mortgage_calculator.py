@@ -187,8 +187,44 @@ st.markdown("""
     /* Number input arrows */
     .stNumberInput button { background: #1e2d3d !important; color: #94a3b8 !important; border: none !important; }
     .stNumberInput button:hover { background: #10b981 !important; color: #080b0f !important; }
-</style>
-""", unsafe_allow_html=True)
+    /* ── MOBILE RESPONSIVE ── */
+    @media (max-width: 768px) {
+        /* Shrink page header */
+        .page-header { padding: 1rem 1rem !important; }
+        .page-header h1 { font-size: 1.4rem !important; }
+        .page-header p { font-size: 0.72rem !important; }
+
+        /* Stack columns — Streamlit uses flex so we override */
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+        }
+
+        /* Metric values smaller on mobile */
+        [data-testid="stMetricValue"] { font-size: 0.85rem !important; }
+        [data-testid="stMetricLabel"] { font-size: 0.65rem !important; }
+
+        /* Tabs wrap on mobile */
+        .stTabs [data-baseweb="tab-list"] { flex-wrap: wrap !important; }
+        .stTabs [data-baseweb="tab"] { font-size: 0.7rem !important; padding: 0.4rem 0.6rem !important; }
+
+        /* Sidebar smaller */
+        .sidebar-logo h2 { font-size: 1.1rem !important; }
+
+        /* Section labels */
+        .section-label { font-size: 0.65rem !important; }
+
+        /* Insight box */
+        .insight-box { padding: 0.7rem 0.9rem !important; font-size: 0.8rem !important; }
+
+        /* Main content padding */
+        .main .block-container { padding: 0.5rem 0.75rem !important; }
+
+        /* Input labels */
+        label { font-size: 0.78rem !important; }
+    }
+</style>""", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────
 # SIDEBAR
