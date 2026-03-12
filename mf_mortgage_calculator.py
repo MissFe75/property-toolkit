@@ -1035,26 +1035,36 @@ elif page == "⚖️ Compare Properties":
         ("Stamp Duty", "stamp", False, lambda v: fmt(v)),
     ]
 
-    # Header row
-    hcols = st.columns([2, 1, 1, 1])
-    hcols[0].markdown("<p style='color:#64748b;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;font-family:JetBrains Mono,monospace;'>METRIC</p>", unsafe_allow_html=True)
-    for i, r in enumerate(results):
-        hcols[i+1].markdown(f"<p style='color:#10b981;font-size:0.9rem;font-weight:700;font-family:Space Grotesk,sans-serif;'>{r['name']}</p>", unsafe_allow_html=True)
+    # Build HTML table
+    header_cells = "<th style='text-align:left;padding:0.6rem 0.8rem;color:#64748b;font-size:0.7rem;letter-spacing:0.1em;font-family:JetBrains Mono,monospace;border-bottom:1px solid #1e2d3d;'>METRIC</th>"
+    for r in results:
+        header_cells += f"<th style='text-align:right;padding:0.6rem 0.8rem;color:#10b981;font-size:0.85rem;font-weight:700;font-family:Space Grotesk,sans-serif;border-bottom:1px solid #1e2d3d;'>{r['name']}</th>"
 
-    st.markdown("<hr style='border-color:#1e2d3d;margin:0.5rem 0;'>", unsafe_allow_html=True)
-
-    for label, key, higher_better, fmt_fn in metrics:
+    body_rows = ""
+    for idx, (label, key, higher_better, fmt_fn) in enumerate(metrics):
         vals = [r[key] for r in results]
         winners = winner(vals, higher_better)
-        row = st.columns([2, 1, 1, 1])
-        row[0].markdown(f"<span style='color:#64748b;font-size:0.78rem;font-family:Space Grotesk,sans-serif;'>{label}</span>", unsafe_allow_html=True)
+        bg = "#161b27" if idx % 2 == 0 else "#0f1117"
+        row_html = f"<tr style='background:{bg};'>"
+        row_html += f"<td style='padding:0.6rem 0.8rem;color:#64748b;font-size:0.78rem;font-family:Space Grotesk,sans-serif;white-space:nowrap;'>{label}</td>"
         for i, r in enumerate(results):
-            is_winner = i in winners
-            color = "#10b981" if is_winner else "#94a3b8"
-            prefix = "🏆 " if is_winner else ""
-            row[i+1].markdown(f"<span style='color:{color};font-size:0.85rem;font-weight:{'700' if is_winner else '400'};font-family:JetBrains Mono,monospace;'>{prefix}{fmt_fn(r[key])}</span>", unsafe_allow_html=True)
+            is_win = i in winners
+            color = "#10b981" if is_win else "#94a3b8"
+            weight = "700" if is_win else "400"
+            trophy = "🏆 " if is_win else ""
+            row_html += f"<td style='text-align:right;padding:0.6rem 0.8rem;color:{color};font-size:0.82rem;font-weight:{weight};font-family:JetBrains Mono,monospace;white-space:nowrap;'>{trophy}{fmt_fn(r[key])}</td>"
+        row_html += "</tr>"
+        body_rows += row_html
 
-    # ── Bar charts ──
+    table_html = f"""
+    <div style='overflow-x:auto;border-radius:6px;border:1px solid #1e2d3d;'>
+        <table style='width:100%;border-collapse:collapse;'>
+            <thead><tr style='background:#0d1520;'>{header_cells}</tr></thead>
+            <tbody>{body_rows}</tbody>
+        </table>
+    </div>
+    """
+    st.markdown(table_html, unsafe_allow_html=True)
     st.divider()
     st.markdown('<div class="section-label">Visual Comparison</div>', unsafe_allow_html=True)
 
