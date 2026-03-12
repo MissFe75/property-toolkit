@@ -191,7 +191,7 @@ with st.sidebar:
 
     page = st.selectbox(
         "Navigate",
-        ["🏠 Property Analyzer", "📐 Mortgage Calculator", "📊 Yield Calculator"],
+        ["🏠 Property Analyzer", "📐 Mortgage Calculator", "📊 Yield Calculator", "⚖️ Compare Properties"],
         label_visibility="collapsed"
     )
 
@@ -817,3 +817,186 @@ elif page == "📊 Yield Calculator":
             surplus = weekly_rent - breakeven
             st.metric("Break-even weekly rent (expenses only)", f"{fmt(breakeven)}/wk")
             st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Your rent vs break-even: <strong style='color:#f1f5f9;'>{surplus:+,.0f}/wk</strong> {'✅' if surplus >= 0 else '❌'}</span>", unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────
+# PAGE: COMPARE PROPERTIES
+# ─────────────────────────────────────────────
+
+elif page == "⚖️ Compare Properties":
+    st.markdown("""
+    <div class="page-header">
+        <div>
+            <h1>⚖️ Compare Properties</h1>
+            <p>SIDE-BY-SIDE ANALYSIS OF UP TO 3 PROPERTIES</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Shared assumptions ──
+    st.markdown('<div class="section-label">Shared Assumptions</div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        cmp_entity = st.selectbox("Entity type", ["Individual", "SMSF", "Company / Trust"], key="cmp_entity")
+    with col2:
+        cmp_state = st.selectbox("State", ["QLD", "NSW", "VIC", "WA", "SA", "TAS", "ACT", "NT"], key="cmp_state")
+    with col3:
+        cmp_income = st.number_input("Other annual income ($)", min_value=0.0, value=80000.0, step=1000.0, key="cmp_income")
+
+    st.divider()
+
+    # ── Property inputs ──
+    props = []
+    cols = st.columns(3)
+    default_names = ["Property A", "Property B", "Property C"]
+    default_prices = [500000.0, 650000.0, 450000.0]
+    default_rents = [500.0, 620.0, 440.0]
+    default_loans = [400000.0, 520000.0, 360000.0]
+    default_rates = [6.0, 6.0, 6.5]
+    default_expenses = [5000.0, 6500.0, 4500.0]
+
+    for i, col in enumerate(cols):
+        with col:
+            st.markdown(f'<div class="section-label">{default_names[i]}</div>', unsafe_allow_html=True)
+            name = st.text_input("Label", value=default_names[i], key=f"cmp_name_{i}")
+            price = st.number_input("Purchase price ($)", min_value=1.0, value=default_prices[i], step=1000.0, key=f"cmp_price_{i}")
+            rent = st.number_input("Weekly rent ($)", min_value=0.0, value=default_rents[i], step=10.0, key=f"cmp_rent_{i}")
+            loan = st.number_input("Loan amount ($)", min_value=0.0, value=default_loans[i], step=1000.0, key=f"cmp_loan_{i}")
+            rate = st.number_input("Interest rate (%)", min_value=0.0, value=default_rates[i], step=0.1, key=f"cmp_rate_{i}")
+            expenses = st.number_input("Annual expenses ($)", min_value=0.0, value=default_expenses[i], step=100.0, key=f"cmp_exp_{i}")
+            loan_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30, key=f"cmp_term_{i}")
+            props.append({
+                "name": name, "price": price, "rent": rent,
+                "loan": loan, "rate": rate, "expenses": expenses, "term": loan_term
+            })
+
+    st.divider()
+
+    # ── Calculations ──
+    results = []
+    marg = marginal_rate(cmp_entity, cmp_income)
+    for p in props:
+        annual_rent = p["rent"] * 52
+        gross_yield = (annual_rent / p["price"]) * 100
+        net_yield = ((annual_rent - p["expenses"]) / p["price"]) * 100
+        annual_interest = p["loan"] * (p["rate"] / 100)
+        monthly = calc_monthly_payment(p["loan"], p["rate"], p["term"])
+        equity = p["price"] - p["loan"]
+        lvr = (p["loan"] / p["price"]) * 100
+        cashflow_pre = annual_rent - annual_interest - p["expenses"]
+        tax_benefit = abs(min(0, cashflow_pre)) * marg if cashflow_pre < 0 else 0
+        cashflow_post = cashflow_pre + tax_benefit
+        stamp = calc_stamp_duty(p["price"], cmp_state)
+        results.append({
+            "name": p["name"],
+            "gross_yield": gross_yield,
+            "net_yield": net_yield,
+            "cashflow_pre": cashflow_pre,
+            "cashflow_post": cashflow_post,
+            "monthly": monthly,
+            "equity": equity,
+            "lvr": lvr,
+            "stamp": stamp,
+            "price": p["price"],
+        })
+
+    # ── Winner highlighting helper ──
+    def winner(vals, higher_is_better=True):
+        if higher_is_better:
+            best = max(vals)
+        else:
+            best = min(vals)
+        return [i for i, v in enumerate(vals) if v == best]
+
+    # ── Comparison table ──
+    st.markdown('<div class="section-label">Results Comparison</div>', unsafe_allow_html=True)
+
+    metrics = [
+        ("Gross Yield", "gross_yield", True, lambda v: fmtp(v)),
+        ("Net Yield", "net_yield", True, lambda v: fmtp(v)),
+        ("Cashflow (pre-tax)", "cashflow_pre", True, lambda v: f"{fmt(v)}/yr"),
+        ("Cashflow (after-tax)", "cashflow_post", True, lambda v: f"{fmt(v)}/yr"),
+        ("Monthly Repayment", "monthly", False, lambda v: fmt(v)),
+        ("LVR", "lvr", False, lambda v: fmtp(v)),
+        ("Equity", "equity", True, lambda v: fmt(v)),
+        ("Stamp Duty", "stamp", False, lambda v: fmt(v)),
+    ]
+
+    # Header row
+    hcols = st.columns([2, 1, 1, 1])
+    hcols[0].markdown("<p style='color:#64748b;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;font-family:JetBrains Mono,monospace;'>METRIC</p>", unsafe_allow_html=True)
+    for i, r in enumerate(results):
+        hcols[i+1].markdown(f"<p style='color:#10b981;font-size:0.9rem;font-weight:700;font-family:Space Grotesk,sans-serif;'>{r['name']}</p>", unsafe_allow_html=True)
+
+    st.markdown("<hr style='border-color:#1e2d3d;margin:0.5rem 0;'>", unsafe_allow_html=True)
+
+    for label, key, higher_better, fmt_fn in metrics:
+        vals = [r[key] for r in results]
+        winners = winner(vals, higher_better)
+        row = st.columns([2, 1, 1, 1])
+        row[0].markdown(f"<span style='color:#64748b;font-size:0.78rem;font-family:Space Grotesk,sans-serif;'>{label}</span>", unsafe_allow_html=True)
+        for i, r in enumerate(results):
+            is_winner = i in winners
+            color = "#10b981" if is_winner else "#94a3b8"
+            prefix = "🏆 " if is_winner else ""
+            row[i+1].markdown(f"<span style='color:{color};font-size:0.85rem;font-weight:{'700' if is_winner else '400'};font-family:JetBrains Mono,monospace;'>{prefix}{fmt_fn(r[key])}</span>", unsafe_allow_html=True)
+
+    # ── Bar charts ──
+    st.divider()
+    st.markdown('<div class="section-label">Visual Comparison</div>', unsafe_allow_html=True)
+
+    names = [r["name"] for r in results]
+    tab1, tab2, tab3 = st.tabs(["📊 Yield", "💰 Cashflow", "🏦 LVR & Equity"])
+
+    with tab1:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(name="Gross Yield", x=names, y=[r["gross_yield"] for r in results],
+                             marker_color=COLORS["gold"], marker_line_width=0))
+        fig.add_trace(go.Bar(name="Net Yield", x=names, y=[r["net_yield"] for r in results],
+                             marker_color="#064e3b", marker_line_width=0))
+        fig.update_layout(**PLOTLY_LAYOUT, barmode="group",
+                          title=dict(text="Gross vs Net Yield", font=dict(size=15, color="#10b981", family="Space Grotesk")),
+                          legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#e2e8f0", size=13, family="Space Grotesk")),
+                          yaxis=dict(gridcolor="#1e2d3d", ticksuffix="%"), xaxis=dict(gridcolor="#1e2d3d"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tab2:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(name="Pre-tax cashflow", x=names, y=[r["cashflow_pre"] for r in results],
+                             marker_color="#334155", marker_line_width=0))
+        fig.add_trace(go.Bar(name="After-tax cashflow", x=names, y=[r["cashflow_post"] for r in results],
+                             marker_color=COLORS["gold"], marker_line_width=0))
+        fig.add_hline(y=0, line_color=COLORS["red"], line_width=1, opacity=0.5)
+        fig.update_layout(**PLOTLY_LAYOUT, barmode="group",
+                          title=dict(text="Annual Cashflow Comparison", font=dict(size=15, color="#10b981", family="Space Grotesk")),
+                          legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#e2e8f0", size=13, family="Space Grotesk")),
+                          yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"), xaxis=dict(gridcolor="#1e2d3d"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    with tab3:
+        fig = go.Figure()
+        fig.add_trace(go.Bar(name="Equity", x=names, y=[r["equity"] for r in results],
+                             marker_color=COLORS["gold"], marker_line_width=0))
+        fig.add_trace(go.Bar(name="Loan", x=names, y=[r["price"] - r["equity"] for r in results],
+                             marker_color="#1e3a2a", marker_line_width=0))
+        fig.update_layout(**PLOTLY_LAYOUT, barmode="stack",
+                          title=dict(text="Equity vs Loan", font=dict(size=15, color="#10b981", family="Space Grotesk")),
+                          legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#e2e8f0", size=13, family="Space Grotesk")),
+                          yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"), xaxis=dict(gridcolor="#1e2d3d"))
+        st.plotly_chart(fig, use_container_width=True)
+
+    # ── Recommendation ──
+    st.divider()
+    best_yield = results[winner([r["net_yield"] for r in results])[0]]["name"]
+    best_cashflow = results[winner([r["cashflow_post"] for r in results])[0]]["name"]
+    best_lvr = results[winner([r["lvr"] for r in results], higher_is_better=False)[0]]["name"]
+    st.markdown(f"""
+    <div class="insight-box">
+        <strong>📊 Quick Summary</strong><br>
+        <span>
+        🏆 Best net yield: <strong style='color:#10b981'>{best_yield}</strong> &nbsp;|&nbsp;
+        💰 Best cashflow: <strong style='color:#10b981'>{best_cashflow}</strong> &nbsp;|&nbsp;
+        🏦 Lowest LVR: <strong style='color:#10b981'>{best_lvr}</strong>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
