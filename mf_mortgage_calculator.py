@@ -136,8 +136,8 @@ st.markdown("""
         padding: 1.25rem 1.75rem;
         margin-bottom: 1.5rem;
     }
-    .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 1.5rem !important; }
-    .page-header p { color: #475569 !important; margin: 0.2rem 0 0 !important; font-size: 0.95rem !important; letter-spacing: 0.02em; color: #94a3b8 !important; }
+    .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 1.5rem !important; font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+    .page-header p { color: #64748b !important; margin: 0.2rem 0 0 !important; font-size: 0.82rem !important; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif !important; }
 
     /* Section labels */
     .section-label {
