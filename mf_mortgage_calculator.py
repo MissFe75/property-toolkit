@@ -69,7 +69,9 @@ st.markdown("""
     .stNumberInput label, .stSelectbox label { color: #64748b !important; font-size: 0.72rem !important; letter-spacing: 0.08em; text-transform: uppercase; }
 
     /* Toggle */
-    .stToggle label { color: #94a3b8 !important; }
+    .stToggle label { color: #e2e8f0 !important; font-size: 0.9rem !important; font-weight: 500 !important; }
+    .stToggle [data-baseweb="toggle"] { transform: scale(1.2); }
+    [data-testid="stToggle"] p { color: #e2e8f0 !important; font-size: 0.9rem !important; font-weight: 500 !important; font-family: 'Space Grotesk', sans-serif !important; }
 
     /* Buttons */
     .stButton > button {
