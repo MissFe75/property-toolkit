@@ -494,14 +494,15 @@ if page == "🏠 Property Analyzer":
 
     # ── Key Metrics ──
     st.markdown('<div class="section-label">Key Metrics</div>', unsafe_allow_html=True)
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3 = st.columns(3)
     c1.metric("Gross Yield", fmtp(gross_yield))
     c2.metric("Net Yield", fmtp(net_yield))
     cashflow_delta = "✅ Positive" if cashflow_pretax > 0 else ("❌ Negative" if cashflow_pretax < 0 else "😌 Neutral")
     c3.metric("Cashflow (pre-tax)", f"{fmt(cashflow_pretax)}/yr", cashflow_delta)
-    c4.metric("Cashflow (after-tax)", f"{fmt(cashflow_aftertax)}/yr")
-    c5.metric("Stamp Duty", fmt(stamp_duty))
-    c6.metric("LVR", fmtp(lvr))
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Cashflow (after-tax)", f"{fmt(cashflow_aftertax)}/yr")
+    c2.metric("Stamp Duty", fmt(stamp_duty))
+    c3.metric("LVR", fmtp(lvr))
 
     # ── Charts ──
     st.divider()
