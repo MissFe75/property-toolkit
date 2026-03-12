@@ -137,13 +137,13 @@ st.markdown("""
     .page-header {
         background: linear-gradient(135deg, #0d1f17 0%, #0a1628 100%);
         border: 1px solid #1e2d3d;
-        border-left: 4px solid #10b981;
+        border-left: 6px solid #10b981;
         border-radius: 6px;
-        padding: 1.25rem 1.75rem;
+        padding: 2rem 2.5rem;
         margin-bottom: 1.5rem;
     }
-    .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 1.5rem !important; font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-    .page-header p { color: #64748b !important; margin: 0.2rem 0 0 !important; font-size: 0.82rem !important; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif !important; }
+    .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 2.2rem !important; font-family: 'Space Grotesk', sans-serif !important; font-weight: 700 !important; letter-spacing: -0.03em !important; }
+    .page-header p { color: #64748b !important; margin: 0.4rem 0 0 !important; font-size: 0.9rem !important; letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif !important; }
 
     /* Section labels */
     .section-label {
