@@ -187,7 +187,7 @@ PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="#faf7f2",
     font=dict(family="DM Sans", color=COLORS["dark"]),
-    margin=dict(l=20, r=20, t=60, b=60),
+    margin=dict(l=20, r=20, t=40, b=20),
 )
 
 STAMP_DUTY = {
@@ -239,6 +239,45 @@ def build_amortization(loan, annual_rate, years, extra_monthly=0):
             "Interest": interest,
             "Balance": balance,
         })
+    return pd.DataFrame(rows)
+
+def build_amortization_io(loan, annual_rate, io_years, total_years, extra_monthly=0):
+    """Interest-only for io_years, then switches to P&I for remaining term."""
+    r = annual_rate / 100 / 12
+    rows = []
+    balance = loan
+    # Interest-only phase
+    for month in range(1, io_years * 12 + 1):
+        interest = balance * r
+        rows.append({
+            "Month": month,
+            "Year": math.ceil(month / 12),
+            "Payment": interest,
+            "Principal": 0.0,
+            "Interest": interest,
+            "Balance": balance,
+            "Phase": "Interest Only",
+        })
+    # P&I phase — recalculate repayment on remaining balance over remaining term
+    remaining_years = total_years - io_years
+    if remaining_years > 0 and balance > 0:
+        pi_payment = calc_monthly_payment(balance, annual_rate, remaining_years) + extra_monthly
+        for i in range(1, remaining_years * 12 + 1):
+            month = io_years * 12 + i
+            interest = balance * r
+            principal = min(pi_payment - interest, balance)
+            balance = max(0, balance - principal)
+            rows.append({
+                "Month": month,
+                "Year": math.ceil(month / 12),
+                "Payment": principal + interest,
+                "Principal": principal,
+                "Interest": interest,
+                "Balance": balance,
+                "Phase": "Principal & Interest",
+            })
+            if balance <= 0.01:
+                break
     return pd.DataFrame(rows)
 
 MARGINAL_RATES = {
@@ -369,6 +408,7 @@ if page == "🏠 Property Analyzer":
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Inputs ──
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('<div class="section-label">Investor Details</div>', unsafe_allow_html=True)
@@ -390,6 +430,11 @@ if page == "🏠 Property Analyzer":
         loan_amount = st.number_input("Loan amount ($)", min_value=0.0, value=400000.0, step=1000.0)
         interest_rate = st.number_input("Interest rate (%)", min_value=0.0, value=6.0, step=0.1)
         loan_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30)
+        io_enabled_pa = st.toggle("Interest-only period", value=False, key="io_pa")
+        io_years_pa = 0
+        if io_enabled_pa:
+            io_years_pa = st.number_input("Interest-only period (years)", min_value=1,
+                                          max_value=int(loan_term) - 1, value=min(5, int(loan_term) - 1), key="io_yrs_pa")
     with col2:
         st.markdown('<div class="section-label">Depreciation</div>', unsafe_allow_html=True)
         build_cost = st.number_input("Construction / build cost ($)", min_value=0.0, value=200000.0, step=1000.0)
@@ -398,11 +443,14 @@ if page == "🏠 Property Analyzer":
 
     st.divider()
 
+    # ── Calculations ──
     annual_rent_gross = weekly_rent * 52
     annual_rent = annual_rent_gross * (1 - vacancy_rate / 100)
     gross_yield = (annual_rent_gross / purchase_price) * 100
     net_yield = ((annual_rent - annual_expenses) / purchase_price) * 100
     monthly_repayment = calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
+    if io_enabled_pa and io_years_pa > 0:
+        monthly_repayment = loan_amount * (interest_rate / 100) / 12  # show IO repayment as primary
     annual_interest = loan_amount * (interest_rate / 100)
     dep_df = calc_depreciation(build_cost, plant_cost, dep_method)
     year1_dep = dep_df.iloc[0]["Total"]
@@ -416,6 +464,7 @@ if page == "🏠 Property Analyzer":
     cashflow_aftertax = cashflow_pretax + tax_benefit
     cash_on_cash = (cashflow_aftertax / equity * 100) if equity > 0 else 0
 
+    # ── Key Metrics ──
     st.markdown('<div class="section-label">Key Metrics</div>', unsafe_allow_html=True)
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric("Gross Yield", fmtp(gross_yield))
@@ -426,6 +475,7 @@ if page == "🏠 Property Analyzer":
     c5.metric("Stamp Duty", fmt(stamp_duty))
     c6.metric("LVR", fmtp(lvr))
 
+    # ── Charts ──
     st.divider()
     st.markdown('<div class="section-label">Visualisations</div>', unsafe_allow_html=True)
     tab1, tab2, tab3 = st.tabs(["💰 Cashflow Projection", "📊 Principal vs Interest", "📉 Loan Balance"])
@@ -436,6 +486,7 @@ if page == "🏠 Property Analyzer":
     with tab3:
         st.plotly_chart(chart_balance_over_time(loan_amount, interest_rate, int(loan_term)), use_container_width=True)
 
+    # ── Details ──
     with st.expander("💰 Full Cashflow Breakdown"):
         col1, col2 = st.columns(2)
         with col1:
@@ -460,7 +511,7 @@ if page == "🏠 Property Analyzer":
         total_upfront = stamp_duty + equity
         st.write(f"Deposit: {fmt(equity)}")
         st.write(f"**Total upfront cash required: {fmt(total_upfront)}**")
-        st.caption("Indicative only — confirm with your conveyancer.")
+        st.caption(f"Indicative only — confirm with your conveyancer.")
 
     with st.expander("📐 Break-Even Rent Finder"):
         breakeven_weekly = (annual_interest + annual_expenses) / 52
@@ -478,7 +529,11 @@ if page == "🏠 Property Analyzer":
         st.dataframe(display_dep.set_index("Year"), use_container_width=True)
 
     with st.expander("📅 Amortization Schedule"):
-        amort_df = build_amortization(loan_amount, interest_rate, int(loan_term))
+        if io_enabled_pa and io_years_pa > 0:
+            amort_df = build_amortization_io(loan_amount, interest_rate, int(io_years_pa), int(loan_term))
+            st.info(f"Showing interest-only for years 1–{io_years_pa}, then P&I for years {io_years_pa+1}–{int(loan_term)}.")
+        else:
+            amort_df = build_amortization(loan_amount, interest_rate, int(loan_term))
         annual_summary = amort_df.groupby("Year").agg(Principal=("Principal","sum"), Interest=("Interest","sum"), Balance=("Balance","last")).reset_index()
         for col in ["Principal", "Interest", "Balance"]:
             annual_summary[col] = annual_summary[col].map("${:,.0f}".format)
@@ -530,23 +585,79 @@ elif page == "📐 Mortgage Calculator":
     with col3:
         loan_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30)
 
+    col1, col2 = st.columns(2)
+    with col1:
+        io_enabled = st.toggle("Interest-only period", value=False)
+    with col2:
+        io_years = 0
+        if io_enabled:
+            io_years = st.number_input("Interest-only period (years)", min_value=1,
+                                       max_value=int(loan_term) - 1, value=min(5, int(loan_term) - 1))
+
     if loan_amount > 0 and interest_rate >= 0 and loan_term > 0:
-        monthly = calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
-        total_paid = monthly * int(loan_term) * 12
-        total_interest = total_paid - loan_amount
+        if io_enabled and io_years > 0:
+            amort_df_full = build_amortization_io(loan_amount, interest_rate, int(io_years), int(loan_term))
+            io_monthly = loan_amount * (interest_rate / 100) / 12
+            pi_years = int(loan_term) - int(io_years)
+            pi_monthly = calc_monthly_payment(loan_amount, interest_rate, pi_years)
+            total_interest = amort_df_full["Interest"].sum()
+            total_paid = amort_df_full["Payment"].sum()
+            # Compare with straight P&I
+            pi_only_df = build_amortization(loan_amount, interest_rate, int(loan_term))
+            pi_total_interest = pi_only_df["Interest"].sum()
+            extra_interest = total_interest - pi_total_interest
 
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Monthly repayment", fmt(monthly))
-        c2.metric("Annual repayment", fmt(monthly * 12))
-        c3.metric("Total interest", fmt(total_interest))
-        c4.metric("Total paid", fmt(total_paid))
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("IO monthly repayment", fmt(io_monthly), f"for {io_years} yrs")
+            c2.metric("P&I monthly (after IO)", fmt(pi_monthly), f"for {pi_years} yrs")
+            c3.metric("Total interest", fmt(total_interest))
+            c4.metric("Extra interest vs P&I", fmt(extra_interest), "cost of IO period", delta_color="inverse")
 
+            st.markdown(f'<div class="insight-box"><strong>Interest-only for {io_years} years costs an extra {fmt(extra_interest)} in total interest</strong> compared to a standard P&I loan.<br><span>Your repayments jump from {fmt(io_monthly)}/mo to {fmt(pi_monthly)}/mo when the IO period ends — make sure you plan for this.</span></div>', unsafe_allow_html=True)
+        else:
+            monthly = calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
+            total_paid = monthly * int(loan_term) * 12
+            total_interest = total_paid - loan_amount
+            amort_df_full = build_amortization(loan_amount, interest_rate, int(loan_term))
+
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Monthly repayment", fmt(monthly))
+            c2.metric("Annual repayment", fmt(monthly * 12))
+            c3.metric("Total interest", fmt(total_interest))
+            c4.metric("Total paid", fmt(total_paid))
+
+        # Charts
         tab1, tab2 = st.tabs(["📊 Principal vs Interest", "📉 Loan Balance"])
         with tab1:
-            st.plotly_chart(chart_principal_interest(loan_amount, interest_rate, int(loan_term)), use_container_width=True)
+            # Build chart from full amortization
+            annual = amort_df_full.groupby("Year").agg(Principal=("Principal","sum"), Interest=("Interest","sum")).reset_index()
+            fig = go.Figure()
+            fig.add_trace(go.Bar(name="Principal", x=annual["Year"], y=annual["Principal"], marker_color=COLORS["gold"], marker_line_width=0))
+            fig.add_trace(go.Bar(name="Interest", x=annual["Year"], y=annual["Interest"], marker_color="#d9cdb8", marker_line_width=0))
+            if io_enabled and io_years > 0:
+                fig.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
+                              annotation_text="IO → P&I", annotation_position="top")
+            fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title="Annual Principal vs Interest",
+                              legend=dict(orientation="h", y=-0.2, yanchor="top"),
+                              xaxis_title="Year", yaxis_title="Amount ($)",
+                              xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+            st.plotly_chart(fig, use_container_width=True)
         with tab2:
-            st.plotly_chart(chart_balance_over_time(loan_amount, interest_rate, int(loan_term)), use_container_width=True)
+            annual_bal = amort_df_full.groupby("Year")["Balance"].last().reset_index()
+            fig2 = go.Figure()
+            fig2.add_trace(go.Scatter(x=annual_bal["Year"], y=annual_bal["Balance"], name="Balance",
+                                      line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
+                                      fillcolor="rgba(181,134,58,0.1)"))
+            if io_enabled and io_years > 0:
+                fig2.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
+                               annotation_text="IO → P&I", annotation_position="top")
+            fig2.update_layout(**PLOTLY_LAYOUT, title="Loan Balance Over Time",
+                               legend=dict(orientation="h", y=-0.2, yanchor="top"),
+                               xaxis_title="Year", yaxis_title="Balance ($)",
+                               xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+            st.plotly_chart(fig2, use_container_width=True)
 
+        # ── PAY OFF SOONER ──
         st.divider()
         st.markdown('<div class="section-label">⚡ Pay Off Sooner Calculator</div>', unsafe_allow_html=True)
         st.markdown("See how much time and interest you save by making extra repayments.")
@@ -562,8 +673,12 @@ elif page == "📐 Mortgage Calculator":
         if effective_loan < 0:
             st.warning("Lump sum exceeds loan amount.")
         else:
-            df_standard = build_amortization(loan_amount, interest_rate, int(loan_term), extra_monthly=0)
-            df_extra = build_amortization(effective_loan, interest_rate, int(loan_term), extra_monthly=extra_monthly)
+            if io_enabled and io_years > 0:
+                df_standard = build_amortization_io(loan_amount, interest_rate, int(io_years), int(loan_term), extra_monthly=0)
+                df_extra = build_amortization_io(effective_loan, interest_rate, int(io_years), int(loan_term), extra_monthly=extra_monthly)
+            else:
+                df_standard = build_amortization(loan_amount, interest_rate, int(loan_term), extra_monthly=0)
+                df_extra = build_amortization(effective_loan, interest_rate, int(loan_term), extra_monthly=extra_monthly)
 
             standard_months = len(df_standard)
             extra_months = len(df_extra)
@@ -580,6 +695,7 @@ elif page == "📐 Mortgage Calculator":
             c2.metric("Interest saved", fmt(interest_saved))
             c3.metric("Total extra paid", fmt(extra_monthly * extra_months + extra_lump))
 
+            # Payoff comparison chart with multiple scenarios
             extra_scenarios = sorted(set([0, int(extra_monthly), int(extra_monthly * 2)]))
             st.plotly_chart(chart_payoff_comparison(effective_loan, interest_rate, int(loan_term), extra_scenarios), use_container_width=True)
 
@@ -587,11 +703,11 @@ elif page == "📐 Mortgage Calculator":
                 st.markdown(f'<div class="insight-box"><strong>By paying an extra {fmt(extra_monthly)}/month{f" plus a {fmt(extra_lump)} lump sum" if extra_lump > 0 else ""}, you save {fmt(interest_saved)} in interest and pay off {years_saved} year{"s" if years_saved != 1 else ""} {mo_saved} month{"s" if mo_saved != 1 else ""} sooner.</strong><br><span>Your effective return on those extra payments is equivalent to earning {interest_rate:.2f}% guaranteed — often better than a savings account after tax.</span></div>', unsafe_allow_html=True)
 
         with st.expander("📅 Full Amortization Schedule"):
-            amort_df = build_amortization(loan_amount, interest_rate, int(loan_term))
-            annual_summary = amort_df.groupby("Year").agg(Principal=("Principal","sum"), Interest=("Interest","sum"), Balance=("Balance","last")).reset_index()
+            annual_summary = amort_df_full.groupby("Year").agg(Principal=("Principal","sum"), Interest=("Interest","sum"), Balance=("Balance","last")).reset_index()
             for col in ["Principal", "Interest", "Balance"]:
                 annual_summary[col] = annual_summary[col].map("${:,.0f}".format)
             st.dataframe(annual_summary.set_index("Year"), use_container_width=True)
+            st.write(f"Total interest over loan term: **{fmt(amort_df_full['Interest'].sum())}**")
 
     else:
         st.info("Enter loan details above to see results.")
@@ -631,6 +747,7 @@ elif page == "📊 Yield Calculator":
         c3.metric("Gross yield", fmtp(gross_yield))
         c4.metric("Net yield", fmtp(net_yield))
 
+        # Yield gauge
         fig = go.Figure(go.Indicator(
             mode="gauge+number+delta",
             value=net_yield,
@@ -654,11 +771,11 @@ elif page == "📊 Yield Calculator":
         st.plotly_chart(fig, use_container_width=True)
 
         if net_yield >= 5:
-            st.success("✅ Strong yield — this property is performing above the 5% benchmark.")
+            st.success(f"✅ Strong yield — this property is performing above the 5% benchmark.")
         elif net_yield >= 3.5:
-            st.info("📊 Moderate yield — acceptable but monitor expenses to improve returns.")
+            st.info(f"📊 Moderate yield — acceptable but monitor expenses to improve returns.")
         else:
-            st.error("⚠️ Low yield — consider price negotiation or increasing rent.")
+            st.error(f"⚠️ Low yield — consider price negotiation or increasing rent.")
 
         with st.expander("📐 Break-Even Rent"):
             breakeven = annual_expenses / 52
