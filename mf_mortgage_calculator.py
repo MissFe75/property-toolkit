@@ -42,11 +42,11 @@ st.markdown("""
         border: 1px solid #1e2d3d !important;
         border-top: 2px solid #10b981 !important;
         border-radius: 6px !important;
-        padding: 1rem !important;
+        padding: 0.75rem !important;
     }
-    [data-testid="metric-container"] label { color: #64748b !important; font-size: 0.68rem !important; letter-spacing: 0.12em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace !important; }
-    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #f1f5f9 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 1.3rem !important; font-weight: 600 !important; }
-    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.72rem !important; }
+    [data-testid="metric-container"] label { color: #64748b !important; font-size: 0.62rem !important; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace !important; }
+    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #f1f5f9 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.95rem !important; font-weight: 600 !important; }
+    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.65rem !important; }
 
     /* Inputs */
     .stNumberInput input, .stSelectbox select {
@@ -78,7 +78,7 @@ st.markdown("""
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] { background: #161b27 !important; border-radius: 6px !important; padding: 4px !important; gap: 2px !important; }
     .stTabs [data-baseweb="tab"] { background: transparent !important; color: #64748b !important; border-radius: 4px !important; font-family: 'Space Grotesk', sans-serif !important; font-size: 0.8rem !important; }
-    .stTabs [aria-selected="true"] { background: #10b981 !important; color: #080b0f !important; font-weight: 600 !important; }
+    .stTabs [aria-selected="true"] { background: #10b981 !important; color: #ffffff !important; font-weight: 700 !important; }
 
     /* Expanders */
     .streamlit-expanderHeader {
