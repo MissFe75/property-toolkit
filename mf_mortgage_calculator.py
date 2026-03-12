@@ -359,7 +359,7 @@ def chart_principal_interest(loan, annual_rate, years):
                          marker_color=COLORS["gold"], marker_line_width=0))
     fig.add_trace(go.Bar(name="Interest", x=annual["Year"], y=annual["Interest"],
                          marker_color="#1e3a2a", marker_line_width=0))
-    fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title=dict(text="Annual Principal vs Interest", font=dict(size=16, color="#f1f5f9")),
+    fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title=dict(text="Annual Principal vs Interest", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
                       xaxis_title="Year", yaxis_title="Amount ($)",
                       xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
@@ -378,7 +378,7 @@ def chart_balance_over_time(loan, annual_rate, years, extra=0):
         fig.add_trace(go.Scatter(x=annual_extra["Year"], y=annual_extra["Balance"], name=f"+{fmt(extra)}/mo extra",
                                  line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
                                  fillcolor="rgba(16,185,129,0.1)"))
-    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Balance Over Time", font=dict(size=16, color="#f1f5f9")),
+    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Balance Over Time", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                       xaxis_title="Year", yaxis_title="Balance ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
                       xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
@@ -400,7 +400,7 @@ def chart_cashflow(annual_rent, annual_interest, annual_expenses, dep_df, marg_r
                              line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
                              fillcolor="rgba(16,185,129,0.08)"))
     fig.add_hline(y=0, line_dash="solid", line_color=COLORS["red"], line_width=1, opacity=0.5)
-    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Annual Cashflow (10-Year Projection)", font=dict(size=16, color="#f1f5f9")),
+    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Annual Cashflow (10-Year Projection)", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                       xaxis_title="Year", yaxis_title="Cashflow ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
                       xaxis=dict(gridcolor="#1e2d3d", dtick=1), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
@@ -415,7 +415,7 @@ def chart_payoff_comparison(loan, annual_rate, years, extra_amounts):
         label = "Standard" if extra == 0 else f"+{fmt(extra)}/mo"
         fig.add_trace(go.Scatter(x=annual["Year"], y=annual["Balance"], name=label,
                                  line=dict(color=colors_list[i % len(colors_list)], width=2)))
-    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Payoff Comparison", font=dict(size=16, color="#f1f5f9")),
+    fig.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Payoff Comparison", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                       xaxis_title="Year", yaxis_title="Balance ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
                       xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
@@ -666,7 +666,7 @@ elif page == "📐 Mortgage Calculator":
             if io_enabled and io_years > 0:
                 fig.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
                               annotation_text="IO → P&I", annotation_position="top")
-            fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title=dict(text="Annual Principal vs Interest", font=dict(size=16, color="#f1f5f9")),
+            fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title=dict(text="Annual Principal vs Interest", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                               legend=dict(orientation="h", y=-0.2, yanchor="top"),
                               xaxis_title="Year", yaxis_title="Amount ($)",
                               xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
@@ -680,7 +680,7 @@ elif page == "📐 Mortgage Calculator":
             if io_enabled and io_years > 0:
                 fig2.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
                                annotation_text="IO → P&I", annotation_position="top")
-            fig2.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Balance Over Time", font=dict(size=16, color="#f1f5f9")),
+            fig2.update_layout(**PLOTLY_LAYOUT, title=dict(text="Loan Balance Over Time", font=dict(size=15, color="#10b981", family="Space Grotesk")),
                                legend=dict(orientation="h", y=-0.2, yanchor="top"),
                                xaxis_title="Year", yaxis_title="Balance ($)",
                                xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
