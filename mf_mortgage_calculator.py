@@ -72,6 +72,10 @@ st.markdown("""
     .stToggle label { color: #e2e8f0 !important; font-size: 0.9rem !important; font-weight: 500 !important; }
     .stToggle [data-baseweb="toggle"] { transform: scale(1.2); }
     [data-testid="stToggle"] p { color: #e2e8f0 !important; font-size: 0.9rem !important; font-weight: 500 !important; font-family: 'Space Grotesk', sans-serif !important; }
+    [data-testid="stRadio"] label { color: #e2e8f0 !important; font-family: 'Space Grotesk', sans-serif !important; font-size: 0.85rem !important; }
+    [data-testid="stRadio"] [data-testid="stMarkdownContainer"] p { color: #e2e8f0 !important; font-size: 0.85rem !important; }
+    [data-baseweb="radio"] div { border-color: #10b981 !important; }
+    [data-baseweb="radio"] [aria-checked="true"] div { background-color: #10b981 !important; border-color: #10b981 !important; }
 
     /* Buttons */
     .stButton > button {
@@ -460,7 +464,7 @@ if page == "🏠 Property Analyzer":
         loan_amount = st.number_input("Loan amount ($)", min_value=0.0, value=400000.0, step=1000.0)
         interest_rate = st.number_input("Interest rate (%)", min_value=0.0, value=6.0, step=0.1)
         loan_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30)
-        io_enabled_pa = st.toggle("Interest-only period", value=False, key="io_pa")
+        io_enabled_pa = st.radio("Loan type", ["Principal & Interest", "Interest Only"], horizontal=True, key="io_pa") == "Interest Only"
         io_years_pa = 0
         if io_enabled_pa:
             io_years_pa = st.number_input("Interest-only period (years)", min_value=1,
@@ -618,7 +622,7 @@ elif page == "📐 Mortgage Calculator":
 
     col1, col2 = st.columns(2)
     with col1:
-        io_enabled = st.toggle("Interest-only period", value=False)
+        io_enabled = st.radio("Loan type", ["Principal & Interest", "Interest Only"], horizontal=True) == "Interest Only"
     with col2:
         io_years = 0
         if io_enabled:
