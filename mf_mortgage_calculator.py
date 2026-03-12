@@ -47,8 +47,14 @@ st.markdown("""
         padding: 0.75rem !important;
     }
     [data-testid="metric-container"] label { color: #64748b !important; font-size: 0.62rem !important; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace !important; }
-    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #f1f5f9 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.95rem !important; font-weight: 600 !important; }
-    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.65rem !important; }
+    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #f1f5f9 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.78rem !important; font-weight: 600 !important; }
+    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.58rem !important; }
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] { background: #161b27 !important; border-radius: 6px !important; padding: 4px !important; gap: 2px !important; }
+    .stTabs [data-baseweb="tab"] { background: transparent !important; color: #94a3b8 !important; border-radius: 4px !important; font-family: 'Space Grotesk', sans-serif !important; font-size: 0.8rem !important; }
+    .stTabs [aria-selected="true"] { background: #10b981 !important; color: #000000 !important; font-weight: 700 !important; }
+    .stTabs [aria-selected="true"] p { color: #000000 !important; font-weight: 700 !important; }
+    .stTabs [aria-selected="true"] * { color: #000000 !important; }
 
     /* Inputs */
     .stNumberInput input, .stSelectbox select {
@@ -76,11 +82,6 @@ st.markdown("""
         letter-spacing: 0.05em !important;
     }
     .stButton > button:hover { background: #059669 !important; }
-
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] { background: #161b27 !important; border-radius: 6px !important; padding: 4px !important; gap: 2px !important; }
-    .stTabs [data-baseweb="tab"] { background: transparent !important; color: #64748b !important; border-radius: 4px !important; font-family: 'Space Grotesk', sans-serif !important; font-size: 0.8rem !important; }
-    .stTabs [aria-selected="true"] { background: #10b981 !important; color: #ffffff !important; font-weight: 700 !important; }
 
     /* Expanders */
     .streamlit-expanderHeader {
