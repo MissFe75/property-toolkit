@@ -657,7 +657,7 @@ elif page == "📐 Mortgage Calculator":
 
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Monthly repayment", fmt(monthly))
-            c2.metric("Annual repayment", fmt(monthly * 12))
+            c2.metric("Weekly repayment", fmt(monthly * 12 / 52))
             c3.metric("Total interest", fmt(total_interest))
             c4.metric("Total paid", fmt(total_paid))
 
@@ -770,17 +770,35 @@ elif page == "📊 Yield Calculator":
         vacancy_rate = st.number_input("Vacancy rate (%)", value=4.0, step=0.5)
         annual_expenses = st.number_input("Annual expenses ($)", value=5000.0, step=100.0)
 
+    st.markdown('<div class="section-label">Mortgage (optional)</div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        yld_loan = st.number_input("Loan amount ($)", value=400000.0, step=1000.0, key="yld_loan")
+    with col2:
+        yld_rate = st.number_input("Interest rate (%)", value=6.0, step=0.1, key="yld_rate")
+    with col3:
+        yld_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30, key="yld_term")
+
     if purchase_price > 0:
         annual_rent_gross = weekly_rent * 52
         annual_rent_net = annual_rent_gross * (1 - vacancy_rate / 100)
         gross_yield = (annual_rent_gross / purchase_price) * 100
         net_yield = ((annual_rent_net - annual_expenses) / purchase_price) * 100
+        yld_monthly = calc_monthly_payment(yld_loan, yld_rate, int(yld_term))
+        yld_weekly = yld_monthly * 12 / 52
+        net_weekly_cashflow = (annual_rent_net - annual_expenses - yld_monthly * 12) / 52
 
         c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Gross yield", fmtp(gross_yield))
+        c2.metric("Net yield", fmtp(net_yield))
+        c3.metric("Monthly repayment", fmt(yld_monthly))
+        c4.metric("Weekly repayment", fmt(yld_weekly))
+
+        c1, c2, c3 = st.columns(3)
         c1.metric("Annual rent (gross)", fmt(annual_rent_gross))
         c2.metric("Annual rent (effective)", fmt(annual_rent_net))
-        c3.metric("Gross yield", fmtp(gross_yield))
-        c4.metric("Net yield", fmtp(net_yield))
+        c3.metric("Net weekly cashflow", f"{fmt(net_weekly_cashflow)}/wk",
+                  "✅ Positive" if net_weekly_cashflow >= 0 else "❌ Negative")
 
         # Yield gauge
         fig = go.Figure(go.Indicator(
@@ -894,6 +912,7 @@ elif page == "⚖️ Compare Properties":
             "cashflow_pre": cashflow_pre,
             "cashflow_post": cashflow_post,
             "monthly": monthly,
+            "weekly": monthly * 12 / 52,
             "equity": equity,
             "lvr": lvr,
             "stamp": stamp,
@@ -917,7 +936,7 @@ elif page == "⚖️ Compare Properties":
         ("Cashflow (pre-tax)", "cashflow_pre", True, lambda v: f"{fmt(v)}/yr"),
         ("Cashflow (after-tax)", "cashflow_post", True, lambda v: f"{fmt(v)}/yr"),
         ("Monthly Repayment", "monthly", False, lambda v: fmt(v)),
-        ("LVR", "lvr", False, lambda v: fmtp(v)),
+        ("Weekly Repayment", "weekly", False, lambda v: fmt(v)),
         ("Equity", "equity", True, lambda v: fmt(v)),
         ("Stamp Duty", "stamp", False, lambda v: fmt(v)),
     ]
@@ -985,18 +1004,30 @@ elif page == "⚖️ Compare Properties":
                           yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"), xaxis=dict(gridcolor="#1e2d3d"))
         st.plotly_chart(fig, use_container_width=True)
 
-    # ── Recommendation ──
     st.divider()
     best_yield = results[winner([r["net_yield"] for r in results])[0]]["name"]
     best_cashflow = results[winner([r["cashflow_post"] for r in results])[0]]["name"]
-    best_lvr = results[winner([r["lvr"] for r in results], higher_is_better=False)[0]]["name"]
-    st.markdown(f"""
-    <div class="insight-box">
-        <strong>📊 Quick Summary</strong><br>
-        <span>
-        🏆 Best net yield: <strong style='color:#10b981'>{best_yield}</strong> &nbsp;|&nbsp;
-        💰 Best cashflow: <strong style='color:#10b981'>{best_cashflow}</strong> &nbsp;|&nbsp;
-        🏦 Lowest LVR: <strong style='color:#10b981'>{best_lvr}</strong>
-        </span>
+    best_repayment = results[winner([r["monthly"] for r in results], higher_is_better=False)[0]]["name"]
+    st.markdown('<div class="section-label">Quick Summary</div>', unsafe_allow_html=True)
+    sc1, sc2, sc3 = st.columns(3)
+    sc1.markdown(f"""
+    <div style='background:#0d1f17;border:1px solid #1e3a2a;border-top:3px solid #10b981;border-radius:6px;padding:1.25rem;text-align:center;'>
+        <div style='font-size:0.65rem;letter-spacing:0.15em;color:#64748b;font-family:JetBrains Mono,monospace;text-transform:uppercase;margin-bottom:0.5rem;'>Best Net Yield</div>
+        <div style='font-size:1.5rem;font-weight:700;color:#10b981;font-family:Space Grotesk,sans-serif;'>🏆 {best_yield}</div>
+        <div style='font-size:0.8rem;color:#475569;margin-top:0.3rem;font-family:Space Grotesk,sans-serif;'>{fmtp(max(r["net_yield"] for r in results))}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    sc2.markdown(f"""
+    <div style='background:#0d1f17;border:1px solid #1e3a2a;border-top:3px solid #10b981;border-radius:6px;padding:1.25rem;text-align:center;'>
+        <div style='font-size:0.65rem;letter-spacing:0.15em;color:#64748b;font-family:JetBrains Mono,monospace;text-transform:uppercase;margin-bottom:0.5rem;'>Best Cashflow</div>
+        <div style='font-size:1.5rem;font-weight:700;color:#10b981;font-family:Space Grotesk,sans-serif;'>🏆 {best_cashflow}</div>
+        <div style='font-size:0.8rem;color:#475569;margin-top:0.3rem;font-family:Space Grotesk,sans-serif;'>{fmt(max(r["cashflow_post"] for r in results))}/yr</div>
+    </div>
+    """, unsafe_allow_html=True)
+    sc3.markdown(f"""
+    <div style='background:#0d1f17;border:1px solid #1e3a2a;border-top:3px solid #10b981;border-radius:6px;padding:1.25rem;text-align:center;'>
+        <div style='font-size:0.65rem;letter-spacing:0.15em;color:#64748b;font-family:JetBrains Mono,monospace;text-transform:uppercase;margin-bottom:0.5rem;'>Lowest Repayment</div>
+        <div style='font-size:1.5rem;font-weight:700;color:#10b981;font-family:Space Grotesk,sans-serif;'>🏆 {best_repayment}</div>
+        <div style='font-size:0.8rem;color:#475569;margin-top:0.3rem;font-family:Space Grotesk,sans-serif;'>{fmt(min(r["monthly"] for r in results))}/mo</div>
     </div>
     """, unsafe_allow_html=True)
