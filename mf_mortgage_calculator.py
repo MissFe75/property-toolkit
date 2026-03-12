@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import math
-from fpdf import FPDF
 import io
 from datetime import datetime
 
@@ -373,47 +372,57 @@ def fmtp(n): return f"{n:.2f}%"
 
 def build_pdf(title, rows, note=""):
     """Build a simple PDF report. rows = list of (label, value) tuples."""
-    pdf = FPDF()
-    pdf.add_page()
-    # Header
-    pdf.set_fill_color(15, 17, 23)
-    pdf.rect(0, 0, 210, 40, "F")
-    pdf.set_text_color(16, 185, 129)
-    pdf.set_font("Helvetica", "B", 18)
-    pdf.set_xy(10, 10)
-    pdf.cell(0, 10, "MF Property Toolkit", ln=True)
-    pdf.set_font("Helvetica", "", 10)
-    pdf.set_text_color(148, 163, 184)
-    pdf.set_x(10)
-    pdf.cell(0, 6, title, ln=True)
-    pdf.set_x(10)
-    pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%d %b %Y %H:%M')}", ln=True)
-    pdf.ln(12)
-    # Table
-    pdf.set_font("Helvetica", "B", 9)
-    pdf.set_text_color(100, 116, 139)
-    pdf.set_fill_color(22, 27, 39)
-    col_w = [110, 70]
-    pdf.set_x(10)
-    pdf.cell(col_w[0], 8, "METRIC", border=0, fill=True)
-    pdf.cell(col_w[1], 8, "VALUE", border=0, fill=True, ln=True)
-    for i, (label, value) in enumerate(rows):
-        pdf.set_x(10)
-        fill = i % 2 == 0
-        pdf.set_fill_color(20, 25, 35) if fill else pdf.set_fill_color(15, 17, 23)
+    try:
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_fill_color(15, 17, 23)
+        pdf.rect(0, 0, 210, 40, "F")
+        pdf.set_text_color(16, 185, 129)
+        pdf.set_font("Helvetica", "B", 18)
+        pdf.set_xy(10, 10)
+        pdf.cell(0, 10, "MF Property Toolkit", ln=True)
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(148, 163, 184)
-        pdf.cell(col_w[0], 9, str(label), border=0, fill=True)
-        pdf.set_font("Helvetica", "B", 10)
-        pdf.set_text_color(241, 245, 249)
-        pdf.cell(col_w[1], 9, str(value), border=0, fill=True, ln=True)
-    if note:
-        pdf.ln(6)
-        pdf.set_font("Helvetica", "I", 8)
-        pdf.set_text_color(100, 116, 139)
         pdf.set_x(10)
-        pdf.multi_cell(0, 5, note)
-    return bytes(pdf.output())
+        pdf.cell(0, 6, title, ln=True)
+        pdf.set_x(10)
+        pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%d %b %Y %H:%M')}", ln=True)
+        pdf.ln(12)
+        col_w = [110, 70]
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.set_text_color(100, 116, 139)
+        pdf.set_fill_color(22, 27, 39)
+        pdf.set_x(10)
+        pdf.cell(col_w[0], 8, "METRIC", border=0, fill=True)
+        pdf.cell(col_w[1], 8, "VALUE", border=0, fill=True, ln=True)
+        for i, (label, value) in enumerate(rows):
+            pdf.set_x(10)
+            pdf.set_fill_color(20, 25, 35) if i % 2 == 0 else pdf.set_fill_color(15, 17, 23)
+            pdf.set_font("Helvetica", "", 10)
+            pdf.set_text_color(148, 163, 184)
+            pdf.cell(col_w[0], 9, str(label), border=0, fill=True)
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.set_text_color(241, 245, 249)
+            pdf.cell(col_w[1], 9, str(value), border=0, fill=True, ln=True)
+        if note:
+            pdf.ln(6)
+            pdf.set_font("Helvetica", "I", 8)
+            pdf.set_text_color(100, 116, 139)
+            pdf.set_x(10)
+            pdf.multi_cell(0, 5, note)
+        return bytes(pdf.output())
+    except Exception:
+        return None
+
+def pdf_download_button(label, rows, title, filename, key):
+    """Render download button only if PDF builds successfully, else show warning."""
+    pdf_bytes = build_pdf(title, rows, "Figures are indicative only and do not constitute financial advice.")
+    if pdf_bytes:
+        st.download_button(label, data=pdf_bytes, file_name=filename,
+                           mime="application/pdf", use_container_width=True, key=key)
+    else:
+        st.warning("PDF export unavailable — ensure fpdf2 is in requirements.txt")
 
 
 # ─────────────────────────────────────────────
@@ -591,11 +600,8 @@ if page == "🏠 Property Analyzer":
     ]
     ec1, ec2 = st.columns(2)
     with ec1:
-        pdf_bytes = build_pdf("Property Analyzer Report", pa_rows,
-                              "Figures are indicative only and do not constitute financial advice.")
-        st.download_button("📄 Download PDF Report", data=pdf_bytes,
-                           file_name=f"property_analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                           mime="application/pdf", use_container_width=True)
+        pdf_download_button("📄 Download PDF Report", pa_rows, "Property Analyzer Report",
+                            f"property_analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_pa")
     with ec2:
         if st.button("💾 Save to History", use_container_width=True, key="save_pa"):
             st.session_state.saved_results.append({
@@ -898,11 +904,8 @@ elif page == "📐 Mortgage Calculator":
         ]
         ec1, ec2 = st.columns(2)
         with ec1:
-            pdf_bytes = build_pdf("Mortgage Calculator Report", mc_rows,
-                                  "Figures are indicative only and do not constitute financial advice.")
-            st.download_button("📄 Download PDF Report", data=pdf_bytes,
-                               file_name=f"mortgage_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                               mime="application/pdf", use_container_width=True)
+            pdf_download_button("📄 Download PDF Report", mc_rows, "Mortgage Calculator Report",
+                                f"mortgage_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_mc")
         with ec2:
             if st.button("💾 Save to History", use_container_width=True, key="save_mc"):
                 st.session_state.saved_results.append({
@@ -1208,11 +1211,8 @@ elif page == "⚖️ Compare Properties":
             cmp_rows.append((f"{r['name']} — {metric_label}", fmt_fn(r[key])))
     ec1, ec2 = st.columns(2)
     with ec1:
-        pdf_bytes = build_pdf("Property Comparison Report", cmp_rows,
-                              "Figures are indicative only and do not constitute financial advice.")
-        st.download_button("📄 Download PDF Report", data=pdf_bytes,
-                           file_name=f"comparison_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                           mime="application/pdf", use_container_width=True)
+        pdf_download_button("📄 Download PDF Report", cmp_rows, "Property Comparison Report",
+                            f"comparison_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_cmp")
     with ec2:
         if st.button("💾 Save to History", use_container_width=True, key="save_cmp"):
             st.session_state.saved_results.append({
@@ -1305,11 +1305,8 @@ elif page == "📋 Saved Results":
                 st.markdown("<br>", unsafe_allow_html=True)
                 dc1, dc2 = st.columns(2)
                 with dc1:
-                    pdf_bytes = build_pdf(result["label"], result["rows"],
-                                          "Figures are indicative only and do not constitute financial advice.")
-                    st.download_button("📄 Download PDF", data=pdf_bytes,
-                                       file_name=f"mf_report_{i}_{datetime.now().strftime('%Y%m%d')}.pdf",
-                                       mime="application/pdf", use_container_width=True, key=f"dl_{idx}")
+                    pdf_download_button("📄 Download PDF", result["rows"], result["label"],
+                                        f"mf_report_{i}_{datetime.now().strftime('%Y%m%d')}.pdf", key=f"dl_{idx}")
                 with dc2:
                     if st.button("🗑️ Delete", use_container_width=True, key=f"del_{idx}"):
                         st.session_state.saved_results.pop(idx)
