@@ -529,7 +529,7 @@ if page == "🏠 Property Analyzer":
         st.write(f"Marginal tax rate ({entity}): **{marg*100:.0f}%**")
         if tax_benefit > 0:
             st.markdown(f'<div class="insight-box"><strong>Negative gearing benefit: {fmt(tax_benefit)}/yr</strong><br><span>At your marginal rate of {marg*100:.0f}%, the ATO effectively subsidises your shortfall.</span></div>', unsafe_allow_html=True)
-        st.write(f"**After-tax cashflow (Year 1): {fmt(cashflow_aftertax)}/yr ({fmt(cashflow_aftertax/52)}/wk)**")
+        st.markdown(f"<p style='font-family:Space Grotesk,sans-serif;color:#f1f5f9;font-weight:600;'>After-tax cashflow (Year 1): {fmt(cashflow_aftertax)}/yr ({fmt(cashflow_aftertax/52)}/wk)</p>", unsafe_allow_html=True)
 
     with st.expander(f"🏛️ Stamp Duty — {state}"):
         st.metric("Stamp duty payable", fmt(stamp_duty))
