@@ -441,7 +441,7 @@ if page == "🏠 Property Analyzer":
     with col1:
         st.markdown('<div class="section-label">Investor Details</div>', unsafe_allow_html=True)
         entity = st.selectbox("Entity type", ["Individual", "SMSF", "Company / Trust"])
-        state = st.selectbox("State", ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"])
+        state = st.selectbox("State", ["QLD", "NSW", "VIC", "WA", "SA", "TAS", "ACT", "NT"])
         other_income = st.number_input("Other annual income ($)", min_value=0.0, value=80000.0, step=1000.0,
                                        help="Salary / other income — used to estimate marginal tax rate")
     with col2:
