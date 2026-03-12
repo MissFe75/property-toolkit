@@ -3,14 +3,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 import math
-import io
-from datetime import datetime
 
 # ─────────────────────────────────────────────
 # SESSION STATE — saved results history
 # ─────────────────────────────────────────────
-if "saved_results" not in st.session_state:
-    st.session_state.saved_results = []
 
 # ─────────────────────────────────────────────
 # PAGE CONFIG & THEME
@@ -209,7 +205,7 @@ with st.sidebar:
 
     page = st.selectbox(
         "Navigate",
-        ["🏠 Property Analyzer", "📐 Mortgage Calculator", "📊 Yield Calculator", "⚖️ Compare Properties", "📋 Saved Results"],
+        ["🏠 Property Analyzer", "📐 Mortgage Calculator", "📊 Yield Calculator", "⚖️ Compare Properties"],
         label_visibility="collapsed"
     )
 
@@ -370,60 +366,6 @@ def calc_cgt(purchase_price, sale_price, purchase_costs, sale_costs, entity, hel
 def fmt(n): return f"${n:,.0f}"
 def fmtp(n): return f"{n:.2f}%"
 
-def build_pdf(title, rows, note=""):
-    """Build a simple PDF report. rows = list of (label, value) tuples."""
-    try:
-        from fpdf import FPDF
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_fill_color(15, 17, 23)
-        pdf.rect(0, 0, 210, 40, "F")
-        pdf.set_text_color(16, 185, 129)
-        pdf.set_font("Helvetica", "B", 18)
-        pdf.set_xy(10, 10)
-        pdf.cell(0, 10, "MF Property Toolkit", ln=True)
-        pdf.set_font("Helvetica", "", 10)
-        pdf.set_text_color(148, 163, 184)
-        pdf.set_x(10)
-        pdf.cell(0, 6, title, ln=True)
-        pdf.set_x(10)
-        pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%d %b %Y %H:%M')}", ln=True)
-        pdf.ln(12)
-        col_w = [110, 70]
-        pdf.set_font("Helvetica", "B", 9)
-        pdf.set_text_color(100, 116, 139)
-        pdf.set_fill_color(22, 27, 39)
-        pdf.set_x(10)
-        pdf.cell(col_w[0], 8, "METRIC", border=0, fill=True)
-        pdf.cell(col_w[1], 8, "VALUE", border=0, fill=True, ln=True)
-        for i, (label, value) in enumerate(rows):
-            pdf.set_x(10)
-            pdf.set_fill_color(20, 25, 35) if i % 2 == 0 else pdf.set_fill_color(15, 17, 23)
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(148, 163, 184)
-            pdf.cell(col_w[0], 9, str(label), border=0, fill=True)
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.set_text_color(241, 245, 249)
-            pdf.cell(col_w[1], 9, str(value), border=0, fill=True, ln=True)
-        if note:
-            pdf.ln(6)
-            pdf.set_font("Helvetica", "I", 8)
-            pdf.set_text_color(100, 116, 139)
-            pdf.set_x(10)
-            pdf.multi_cell(0, 5, note)
-        return bytes(pdf.output())
-    except Exception:
-        return None
-
-def pdf_download_button(label, rows, title, filename, key):
-    """Render download button only if PDF builds successfully, else show warning."""
-    pdf_bytes = build_pdf(title, rows, "Figures are indicative only and do not constitute financial advice.")
-    if pdf_bytes:
-        st.download_button(label, data=pdf_bytes, file_name=filename,
-                           mime="application/pdf", use_container_width=True, key=key)
-    else:
-        st.warning("PDF export unavailable — ensure fpdf2 is in requirements.txt")
-
 
 # ─────────────────────────────────────────────
 # CHART HELPERS
@@ -582,34 +524,6 @@ if page == "🏠 Property Analyzer":
     c2.metric("Stamp Duty", fmt(stamp_duty))
     c3.metric("LVR", fmtp(lvr))
 
-    # ── Save / Export ──
-    st.divider()
-    pa_rows = [
-        ("Purchase Price", fmt(purchase_price)),
-        ("State", state),
-        ("Entity", entity),
-        ("Loan Amount", fmt(loan_amount)),
-        ("Interest Rate", fmtp(interest_rate)),
-        ("Gross Yield", fmtp(gross_yield)),
-        ("Net Yield", fmtp(net_yield)),
-        ("Cashflow (pre-tax)", f"{fmt(cashflow_pretax)}/yr"),
-        ("Cashflow (after-tax)", f"{fmt(cashflow_aftertax)}/yr"),
-        ("Stamp Duty", fmt(stamp_duty)),
-        ("LVR", fmtp(lvr)),
-        ("Monthly Repayment", fmt(calc_monthly_payment(loan_amount, interest_rate, int(loan_term)))),
-    ]
-    ec1, ec2 = st.columns(2)
-    with ec1:
-        pdf_download_button("📄 Download PDF Report", pa_rows, "Property Analyzer Report",
-                            f"property_analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_pa")
-    with ec2:
-        if st.button("💾 Save to History", use_container_width=True, key="save_pa"):
-            st.session_state.saved_results.append({
-                "type": "Property Analyzer",
-                "label": f"${purchase_price:,.0f} — {state} — {datetime.now().strftime('%d %b %H:%M')}",
-                "rows": pa_rows,
-            })
-            st.success("Saved to history! View in the 📋 Saved Results page.")
 
     # ── Charts ──
     st.divider()
@@ -887,33 +801,6 @@ elif page == "📐 Mortgage Calculator":
             st.dataframe(annual_summary.set_index("Year"), use_container_width=True)
             st.markdown(f"<span style='font-family:Space Grotesk,sans-serif;color:#94a3b8;'>Total interest over loan term: <strong style='color:#f1f5f9;'>{fmt(amort_df_full['Interest'].sum())}</strong></span>", unsafe_allow_html=True)
 
-        # ── Save / Export ──
-        st.divider()
-        mc_monthly = calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
-        if io_enabled and io_years > 0:
-            mc_monthly = loan_amount * (interest_rate / 100) / 12
-        mc_rows = [
-            ("Loan Amount", fmt(loan_amount)),
-            ("Interest Rate", fmtp(interest_rate)),
-            ("Loan Term", f"{int(loan_term)} years"),
-            ("Loan Type", f"Interest Only ({int(io_years)} yrs)" if (io_enabled and io_years > 0) else "Principal & Interest"),
-            ("Monthly Repayment", fmt(mc_monthly)),
-            ("Weekly Repayment", fmt(mc_monthly * 12 / 52)),
-            ("Total Interest", fmt(amort_df_full["Interest"].sum())),
-            ("Total Paid", fmt(amort_df_full["Payment"].sum())),
-        ]
-        ec1, ec2 = st.columns(2)
-        with ec1:
-            pdf_download_button("📄 Download PDF Report", mc_rows, "Mortgage Calculator Report",
-                                f"mortgage_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_mc")
-        with ec2:
-            if st.button("💾 Save to History", use_container_width=True, key="save_mc"):
-                st.session_state.saved_results.append({
-                    "type": "Mortgage Calculator",
-                    "label": f"{fmt(loan_amount)} @ {interest_rate}% — {datetime.now().strftime('%d %b %H:%M')}",
-                    "rows": mc_rows,
-                })
-                st.success("Saved to history! View in the 📋 Saved Results page.")
 
     else:
         st.info("Enter loan details above to see results.")
@@ -1203,24 +1090,6 @@ elif page == "⚖️ Compare Properties":
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Save / Export Compare ──
-    st.divider()
-    cmp_rows = []
-    for metric_label, key, _, fmt_fn in metrics:
-        for r in results:
-            cmp_rows.append((f"{r['name']} — {metric_label}", fmt_fn(r[key])))
-    ec1, ec2 = st.columns(2)
-    with ec1:
-        pdf_download_button("📄 Download PDF Report", cmp_rows, "Property Comparison Report",
-                            f"comparison_report_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf", key="dl_cmp")
-    with ec2:
-        if st.button("💾 Save to History", use_container_width=True, key="save_cmp"):
-            st.session_state.saved_results.append({
-                "type": "Property Comparison",
-                "label": f"{' vs '.join(r['name'] for r in results)} — {datetime.now().strftime('%d %b %H:%M')}",
-                "rows": cmp_rows,
-            })
-            st.success("Saved to history! View in the 📋 Saved Results page.")
 
     # ── Capital Growth Projector ──
     st.divider()
@@ -1264,57 +1133,3 @@ elif page == "⚖️ Compare Properties":
         """, unsafe_allow_html=True)
     st.caption("⚠️ Capital growth projections are estimates only. Past growth does not guarantee future performance.")
 
-
-# ─────────────────────────────────────────────
-# PAGE: SAVED RESULTS
-# ─────────────────────────────────────────────
-
-elif page == "📋 Saved Results":
-    st.markdown("""
-    <div class="page-header">
-        <div>
-            <h1>📋 Saved Results</h1>
-            <p>YOUR SAVED ANALYSES — CURRENT SESSION ONLY</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    if not st.session_state.saved_results:
-        st.markdown("""
-        <div class="insight-box" style="text-align:center;padding:2rem;">
-            <strong>No saved results yet</strong><br>
-            <span>Use the 💾 Save to History button on any page to save your analyses here.</span>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown(f"<p style='color:#64748b;font-family:Space Grotesk,sans-serif;font-size:0.85rem;'>{len(st.session_state.saved_results)} saved result(s) this session</p>", unsafe_allow_html=True)
-
-        for i, result in enumerate(reversed(st.session_state.saved_results)):
-            idx = len(st.session_state.saved_results) - 1 - i
-            with st.expander(f"{'🏠' if 'Analyzer' in result['type'] else '📐' if 'Mortgage' in result['type'] else '⚖️'} {result['label']}"):
-                # Badge
-                st.markdown(f"<span style='background:#0d1f17;border:1px solid #1e3a2a;padding:0.2rem 0.6rem;border-radius:4px;font-size:0.7rem;color:#10b981;font-family:JetBrains Mono,monospace;'>{result['type'].upper()}</span>", unsafe_allow_html=True)
-                st.markdown("<br>", unsafe_allow_html=True)
-
-                # Table
-                for label, value in result["rows"]:
-                    rc1, rc2 = st.columns([2, 1])
-                    rc1.markdown(f"<span style='color:#64748b;font-size:0.8rem;font-family:Space Grotesk,sans-serif;'>{label}</span>", unsafe_allow_html=True)
-                    rc2.markdown(f"<span style='color:#f1f5f9;font-size:0.8rem;font-weight:600;font-family:JetBrains Mono,monospace;'>{value}</span>", unsafe_allow_html=True)
-
-                st.markdown("<br>", unsafe_allow_html=True)
-                dc1, dc2 = st.columns(2)
-                with dc1:
-                    pdf_download_button("📄 Download PDF", result["rows"], result["label"],
-                                        f"mf_report_{i}_{datetime.now().strftime('%Y%m%d')}.pdf", key=f"dl_{idx}")
-                with dc2:
-                    if st.button("🗑️ Delete", use_container_width=True, key=f"del_{idx}"):
-                        st.session_state.saved_results.pop(idx)
-                        st.rerun()
-
-        st.divider()
-        if st.button("🗑️ Clear All Saved Results", use_container_width=False):
-            st.session_state.saved_results = []
-            st.rerun()
-
-        st.caption("⚠️ Saved results are stored for this browser session only and will be cleared when you close or refresh the page.")
