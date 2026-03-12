@@ -34,7 +34,9 @@ st.markdown("""
     h1, h2, h3 { font-family: 'Space Grotesk', sans-serif !important; color: #f1f5f9 !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
 
     /* Main content text */
-    p, label, .stMarkdown { color: #94a3b8 !important; }
+    p, label, .stMarkdown { color: #94a3b8 !important; font-family: 'Space Grotesk', sans-serif !important; }
+    .stMarkdown p { font-family: 'Space Grotesk', sans-serif !important; }
+    .stMarkdown strong { font-family: 'Space Grotesk', sans-serif !important; color: #f1f5f9 !important; }
 
     /* Metric cards */
     [data-testid="metric-container"] {
