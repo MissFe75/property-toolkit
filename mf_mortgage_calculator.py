@@ -597,6 +597,48 @@ if page == "🏠 Property Analyzer":
             c3.metric("Taxable gain", fmt(taxable_gain))
             c4.metric("Estimated CGT", fmt(est_tax))
 
+    with st.expander("📈 Capital Growth Projector"):
+        st.markdown("Estimate how your property value and equity could grow over time.")
+        col1, col2 = st.columns(2)
+        with col1:
+            cg_rate = st.number_input("Annual growth rate (%)", min_value=0.0, max_value=20.0, value=5.0, step=0.5, key="cg_rate_pa")
+        with col2:
+            cg_years = st.number_input("Projection (years)", min_value=1, max_value=30, value=5, key="cg_years_pa")
+
+        cg_data = []
+        cg_amort = build_amortization(loan_amount, interest_rate, int(loan_term))
+        for yr in range(0, int(cg_years) + 1):
+            proj_value = purchase_price * ((1 + cg_rate / 100) ** yr)
+            loan_balance = cg_amort[cg_amort["Year"] == yr]["Balance"].iloc[-1] if yr > 0 and yr <= len(cg_amort.groupby("Year")) else loan_amount
+            proj_equity = proj_value - loan_balance
+            cg_data.append({"Year": yr, "Property Value": proj_value, "Equity": proj_equity, "Loan Balance": loan_balance})
+        cg_df = pd.DataFrame(cg_data)
+
+        # Metrics
+        final = cg_df.iloc[-1]
+        initial_equity = purchase_price - loan_amount
+        c1, c2, c3 = st.columns(3)
+        c1.metric(f"Value in {int(cg_years)} years", fmt(final["Property Value"]), fmt(final["Property Value"] - purchase_price) + " gain")
+        c2.metric("Projected equity", fmt(final["Equity"]), fmt(final["Equity"] - initial_equity) + " growth")
+        c3.metric("Total return", fmtp(((final["Property Value"] - purchase_price) / purchase_price) * 100))
+
+        # Chart
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=cg_df["Year"], y=cg_df["Property Value"], name="Property Value",
+                                 line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
+                                 fillcolor="rgba(16,185,129,0.06)"))
+        fig.add_trace(go.Scatter(x=cg_df["Year"], y=cg_df["Equity"], name="Your Equity",
+                                 line=dict(color="#34d399", width=2, dash="dot")))
+        fig.add_trace(go.Scatter(x=cg_df["Year"], y=cg_df["Loan Balance"], name="Loan Balance",
+                                 line=dict(color="#334155", width=1.5)))
+        fig.update_layout(**PLOTLY_LAYOUT,
+                          title=dict(text="Property Value & Equity Projection", font=dict(size=15, color="#10b981", family="Space Grotesk")),
+                          legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#e2e8f0", size=13, family="Space Grotesk")),
+                          xaxis_title="Year", yaxis_title="Value ($)",
+                          xaxis=dict(gridcolor="#1e2d3d", dtick=1), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("⚠️ Capital growth projections are estimates only. Past growth does not guarantee future performance.")
+
 
 # ─────────────────────────────────────────────
 # PAGE: MORTGAGE CALCULATOR
@@ -1031,3 +1073,45 @@ elif page == "⚖️ Compare Properties":
         <div style='font-size:0.8rem;color:#475569;margin-top:0.3rem;font-family:Space Grotesk,sans-serif;'>{fmt(min(r["monthly"] for r in results))}/mo</div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── Capital Growth Projector ──
+    st.divider()
+    st.markdown('<div class="section-label">Capital Growth Projector</div>', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        cg_rate_cmp = st.number_input("Annual growth rate (%)", min_value=0.0, max_value=20.0, value=5.0, step=0.5, key="cg_rate_cmp")
+    with col2:
+        cg_years_cmp = st.number_input("Projection (years)", min_value=1, max_value=30, value=5, key="cg_years_cmp")
+
+    fig = go.Figure()
+    colors_cmp = [COLORS["gold"], "#3b82f6", "#f59e0b"]
+    for i, r in enumerate(results):
+        vals = [r["price"] * ((1 + cg_rate_cmp / 100) ** yr) for yr in range(0, int(cg_years_cmp) + 1)]
+        fig.add_trace(go.Scatter(
+            x=list(range(0, int(cg_years_cmp) + 1)),
+            y=vals,
+            name=r["name"],
+            line=dict(color=colors_cmp[i], width=2.5),
+        ))
+
+    fig.update_layout(**PLOTLY_LAYOUT,
+                      title=dict(text="Projected Property Value", font=dict(size=15, color="#10b981", family="Space Grotesk")),
+                      legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#e2e8f0", size=13, family="Space Grotesk")),
+                      xaxis_title="Year", yaxis_title="Value ($)",
+                      xaxis=dict(gridcolor="#1e2d3d", dtick=1),
+                      yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Summary metrics per property
+    gcols = st.columns(3)
+    for i, r in enumerate(results):
+        proj_val = r["price"] * ((1 + cg_rate_cmp / 100) ** int(cg_years_cmp))
+        gain = proj_val - r["price"]
+        gcols[i].markdown(f"""
+        <div style='background:#0d1f17;border:1px solid #1e3a2a;border-top:3px solid {colors_cmp[i]};border-radius:6px;padding:1rem;text-align:center;'>
+            <div style='font-size:0.65rem;letter-spacing:0.15em;color:#64748b;font-family:JetBrains Mono,monospace;text-transform:uppercase;margin-bottom:0.4rem;'>{r["name"]}</div>
+            <div style='font-size:1.3rem;font-weight:700;color:{colors_cmp[i]};font-family:Space Grotesk,sans-serif;'>{fmt(proj_val)}</div>
+            <div style='font-size:0.8rem;color:#10b981;margin-top:0.3rem;font-family:Space Grotesk,sans-serif;'>+{fmt(gain)} gain</div>
+        </div>
+        """, unsafe_allow_html=True)
+    st.caption("⚠️ Capital growth projections are estimates only. Past growth does not guarantee future performance.")
