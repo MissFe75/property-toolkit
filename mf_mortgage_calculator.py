@@ -15,130 +15,155 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Warm parchment theme via custom CSS
+# Dark charcoal + emerald green theme
 st.markdown("""
 <style>
     /* Import fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
     /* Global background */
-    .stApp { background-color: #f7f2ea; }
-    [data-testid="stSidebar"] { background-color: #1a1410 !important; }
-    [data-testid="stSidebar"] * { color: #e8dcc8 !important; }
-    [data-testid="stSidebar"] .stSelectbox label { color: #b5863a !important; }
+    .stApp { background-color: #0f1117; color: #e2e8f0; }
+    [data-testid="stSidebar"] { background-color: #080b0f !important; border-right: 1px solid #1e2530 !important; }
+    [data-testid="stSidebar"] * { color: #94a3b8 !important; }
+    [data-testid="stSidebar"] .stSelectbox label { color: #10b981 !important; }
 
     /* Main font */
-    html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
+    html, body, [class*="css"] { font-family: 'Space Grotesk', sans-serif; }
 
     /* Headings */
-    h1, h2, h3 { font-family: 'Playfair Display', serif !important; color: #1a1410 !important; }
+    h1, h2, h3 { font-family: 'Space Grotesk', sans-serif !important; color: #f1f5f9 !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+
+    /* Main content text */
+    p, label, .stMarkdown { color: #94a3b8 !important; }
 
     /* Metric cards */
     [data-testid="metric-container"] {
-        background: linear-gradient(135deg, #faf7f2, #f3ece0);
-        border: 1px solid #e8dcc8;
-        border-left: 4px solid #b5863a;
-        border-radius: 4px;
+        background: #161b27 !important;
+        border: 1px solid #1e2d3d !important;
+        border-top: 2px solid #10b981 !important;
+        border-radius: 6px !important;
         padding: 1rem !important;
     }
-    [data-testid="metric-container"] label { color: #8a7e6e !important; font-size: 0.72rem !important; letter-spacing: 0.1em; text-transform: uppercase; }
-    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #1a1410 !important; font-family: 'Playfair Display', serif !important; font-size: 1.4rem !important; }
-    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.75rem !important; }
+    [data-testid="metric-container"] label { color: #64748b !important; font-size: 0.68rem !important; letter-spacing: 0.12em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace !important; }
+    [data-testid="metric-container"] [data-testid="stMetricValue"] { color: #f1f5f9 !important; font-family: 'JetBrains Mono', monospace !important; font-size: 1.3rem !important; font-weight: 600 !important; }
+    [data-testid="metric-container"] [data-testid="stMetricDelta"] { font-size: 0.72rem !important; }
 
     /* Inputs */
     .stNumberInput input, .stSelectbox select {
-        background: #fff !important;
-        border: 1px solid #e0d0b8 !important;
-        border-radius: 3px !important;
-        font-family: 'DM Sans', sans-serif !important;
+        background: #161b27 !important;
+        border: 1px solid #1e2d3d !important;
+        border-radius: 4px !important;
+        color: #f1f5f9 !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.9rem !important;
     }
-    .stNumberInput input:focus { border-color: #b5863a !important; box-shadow: 0 0 0 2px rgba(181,134,58,0.15) !important; }
+    .stNumberInput input:focus { border-color: #10b981 !important; box-shadow: 0 0 0 2px rgba(16,185,129,0.2) !important; }
+    .stNumberInput label, .stSelectbox label { color: #64748b !important; font-size: 0.72rem !important; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* Toggle */
+    .stToggle label { color: #94a3b8 !important; }
 
     /* Buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #b5863a, #d4a853) !important;
-        color: white !important;
+        background: #10b981 !important;
+        color: #080b0f !important;
         border: none !important;
-        border-radius: 3px !important;
-        font-family: 'DM Sans', sans-serif !important;
-        font-weight: 500 !important;
+        border-radius: 4px !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
         letter-spacing: 0.05em !important;
-        padding: 0.5rem 1.5rem !important;
     }
-    .stButton > button:hover { background: linear-gradient(135deg, #a07530, #c49843) !important; }
+    .stButton > button:hover { background: #059669 !important; }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] { background: #161b27 !important; border-radius: 6px !important; padding: 4px !important; gap: 2px !important; }
+    .stTabs [data-baseweb="tab"] { background: transparent !important; color: #64748b !important; border-radius: 4px !important; font-family: 'Space Grotesk', sans-serif !important; font-size: 0.8rem !important; }
+    .stTabs [aria-selected="true"] { background: #10b981 !important; color: #080b0f !important; font-weight: 600 !important; }
 
     /* Expanders */
     .streamlit-expanderHeader {
-        background: #f3ece0 !important;
-        border: 1px solid #e8dcc8 !important;
-        border-radius: 3px !important;
-        font-family: 'DM Sans', sans-serif !important;
+        background: #161b27 !important;
+        border: 1px solid #1e2d3d !important;
+        border-radius: 4px !important;
+        color: #94a3b8 !important;
+        font-family: 'Space Grotesk', sans-serif !important;
         font-weight: 500 !important;
-        color: #1a1410 !important;
     }
+    .streamlit-expanderContent { background: #0f1117 !important; border: 1px solid #1e2d3d !important; border-top: none !important; }
 
     /* Divider */
-    hr { border-color: #e8dcc8 !important; }
+    hr { border-color: #1e2d3d !important; }
 
     /* Success/error/info boxes */
-    .stSuccess { background-color: rgba(74,140,92,0.1) !important; border-left-color: #4a8c5c !important; }
-    .stError { background-color: rgba(192,73,58,0.1) !important; border-left-color: #c0493a !important; }
-    .stInfo { background-color: rgba(181,134,58,0.1) !important; border-left-color: #b5863a !important; }
+    .stSuccess { background-color: rgba(16,185,129,0.1) !important; border-left-color: #10b981 !important; color: #6ee7b7 !important; }
+    .stError { background-color: rgba(239,68,68,0.1) !important; border-left-color: #ef4444 !important; color: #fca5a5 !important; }
+    .stInfo { background-color: rgba(59,130,246,0.1) !important; border-left-color: #3b82f6 !important; color: #93c5fd !important; }
+    .stWarning { background-color: rgba(245,158,11,0.1) !important; border-left-color: #f59e0b !important; }
 
     /* Dataframe */
-    [data-testid="stDataFrame"] { border: 1px solid #e8dcc8 !important; border-radius: 4px !important; }
+    [data-testid="stDataFrame"] { border: 1px solid #1e2d3d !important; border-radius: 4px !important; }
+    [data-testid="stDataFrame"] * { color: #94a3b8 !important; background-color: #161b27 !important; }
+
+    /* Selectbox dropdown */
+    [data-baseweb="select"] > div { background-color: #161b27 !important; border-color: #1e2d3d !important; color: #f1f5f9 !important; }
 
     /* Sidebar logo area */
     .sidebar-logo {
         text-align: center;
         padding: 1.5rem 1rem 1rem;
-        border-bottom: 1px solid #3a2e22;
+        border-bottom: 1px solid #1e2530;
         margin-bottom: 1rem;
     }
     .sidebar-logo h2 {
-        font-family: 'Playfair Display', serif !important;
-        color: #d4a853 !important;
-        font-size: 1.3rem !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        color: #10b981 !important;
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em !important;
         margin: 0.5rem 0 0.2rem !important;
     }
-    .sidebar-logo p { color: #8a7e6e !important; font-size: 0.72rem !important; letter-spacing: 0.1em; margin: 0; }
+    .sidebar-logo p { color: #334155 !important; font-size: 0.62rem !important; letter-spacing: 0.15em; margin: 0; }
 
     /* Page header banner */
     .page-header {
-        background: linear-gradient(135deg, #1a1410 0%, #2d2018 100%);
+        background: linear-gradient(135deg, #0d1f17 0%, #0a1628 100%);
+        border: 1px solid #1e2d3d;
+        border-left: 4px solid #10b981;
         border-radius: 6px;
-        padding: 1.5rem 2rem;
+        padding: 1.25rem 1.75rem;
         margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
     }
-    .page-header h1 { color: #d4a853 !important; margin: 0 !important; font-size: 1.6rem !important; }
-    .page-header p { color: #8a7e6e !important; margin: 0.25rem 0 0 !important; font-size: 0.8rem !important; }
+    .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 1.5rem !important; }
+    .page-header p { color: #475569 !important; margin: 0.2rem 0 0 !important; font-size: 0.78rem !important; letter-spacing: 0.05em; }
 
     /* Section labels */
     .section-label {
-        font-size: 0.65rem;
-        letter-spacing: 0.18em;
+        font-size: 0.62rem;
+        letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #b5863a;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
+        color: #10b981;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
         padding-bottom: 0.3rem;
-        border-bottom: 1px solid #e8dcc8;
+        border-bottom: 1px solid #1e2d3d;
+        font-family: 'JetBrains Mono', monospace;
     }
 
     /* Insight box */
     .insight-box {
-        background: linear-gradient(135deg, #faf7f2, #f3ece0);
-        border: 1px solid #e8dcc8;
-        border-left: 4px solid #b5863a;
+        background: #0d1f17;
+        border: 1px solid #1e3a2a;
+        border-left: 3px solid #10b981;
         border-radius: 4px;
-        padding: 1rem 1.25rem;
+        padding: 0.9rem 1.25rem;
         margin: 0.75rem 0;
     }
-    .insight-box strong { color: #1a1410; }
-    .insight-box span { color: #6b5d4a; font-size: 0.85rem; }
+    .insight-box strong { color: #6ee7b7; }
+    .insight-box span { color: #475569; font-size: 0.82rem; }
+
+    /* Number input arrows */
+    .stNumberInput button { background: #1e2d3d !important; color: #94a3b8 !important; border: none !important; }
+    .stNumberInput button:hover { background: #10b981 !important; color: #080b0f !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -162,8 +187,8 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("<p style='font-size:0.65rem;color:#3a2e22;letter-spacing:0.1em;text-transform:uppercase;'>DISCLAIMER</p>", unsafe_allow_html=True)
-    st.markdown("<p style='font-size:0.7rem;color:#5a4e3e;'>Figures are indicative only and do not constitute financial or tax advice. Consult a qualified adviser.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:0.62rem;color:#1e2d3d;letter-spacing:0.15em;text-transform:uppercase;font-family:JetBrains Mono,monospace;'>DISCLAIMER</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:0.7rem;color:#334155;'>Figures are indicative only and do not constitute financial or tax advice. Consult a qualified adviser.</p>", unsafe_allow_html=True)
 
 
 # ─────────────────────────────────────────────
@@ -171,23 +196,24 @@ with st.sidebar:
 # ─────────────────────────────────────────────
 
 COLORS = {
-    "gold": "#b5863a",
-    "gold_light": "#d4a853",
-    "dark": "#1a1410",
-    "parchment": "#f7f2ea",
-    "parchment_mid": "#f3ece0",
-    "border": "#e8dcc8",
-    "green": "#4a8c5c",
-    "red": "#c0493a",
-    "blue": "#3a7ab5",
-    "text_muted": "#8a7e6e",
+    "gold": "#10b981",
+    "gold_light": "#34d399",
+    "dark": "#0f1117",
+    "parchment": "#161b27",
+    "parchment_mid": "#0d1520",
+    "border": "#1e2d3d",
+    "green": "#10b981",
+    "red": "#ef4444",
+    "blue": "#3b82f6",
+    "text_muted": "#64748b",
 }
 
 PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="#faf7f2",
-    font=dict(family="DM Sans", color=COLORS["dark"]),
-    margin=dict(l=20, r=20, t=40, b=20),
+    plot_bgcolor="#161b27",
+    font=dict(family="Space Grotesk", color="#94a3b8"),
+    margin=dict(l=20, r=20, t=60, b=60),
+)
 )
 
 STAMP_DUTY = {
@@ -330,11 +356,11 @@ def chart_principal_interest(loan, annual_rate, years):
     fig.add_trace(go.Bar(name="Principal", x=annual["Year"], y=annual["Principal"],
                          marker_color=COLORS["gold"], marker_line_width=0))
     fig.add_trace(go.Bar(name="Interest", x=annual["Year"], y=annual["Interest"],
-                         marker_color="#d9cdb8", marker_line_width=0))
+                         marker_color="#1e3a2a", marker_line_width=0))
     fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title="Annual Principal vs Interest",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
                       xaxis_title="Year", yaxis_title="Amount ($)",
-                      xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                      xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
     return fig
 
 def chart_balance_over_time(loan, annual_rate, years, extra=0):
@@ -342,18 +368,18 @@ def chart_balance_over_time(loan, annual_rate, years, extra=0):
     annual_base = df_base.groupby("Year")["Balance"].last().reset_index()
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=annual_base["Year"], y=annual_base["Balance"], name="Standard",
-                             line=dict(color="#d9cdb8", width=2), fill="tozeroy",
-                             fillcolor="rgba(217,205,184,0.15)"))
+                             line=dict(color="#334155", width=2), fill="tozeroy",
+                             fillcolor="rgba(16,185,129,0.05)"))
     if extra > 0:
         df_extra = build_amortization(loan, annual_rate, years, extra_monthly=extra)
         annual_extra = df_extra.groupby("Year")["Balance"].last().reset_index()
         fig.add_trace(go.Scatter(x=annual_extra["Year"], y=annual_extra["Balance"], name=f"+{fmt(extra)}/mo extra",
                                  line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
-                                 fillcolor="rgba(181,134,58,0.1)"))
+                                 fillcolor="rgba(16,185,129,0.1)"))
     fig.update_layout(**PLOTLY_LAYOUT, title="Loan Balance Over Time",
                       xaxis_title="Year", yaxis_title="Balance ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
-                      xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                      xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
     return fig
 
 def chart_cashflow(annual_rent, annual_interest, annual_expenses, dep_df, marg_rate_val, years=10):
@@ -367,15 +393,15 @@ def chart_cashflow(annual_rent, annual_interest, annual_expenses, dep_df, marg_r
         cashflows_post.append(pre + benefit)
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=list(range(1, years+1)), y=cashflows_pre, name="Pre-tax cashflow",
-                             line=dict(color="#d9cdb8", width=2, dash="dot")))
+                             line=dict(color="#334155", width=2, dash="dot")))
     fig.add_trace(go.Scatter(x=list(range(1, years+1)), y=cashflows_post, name="After-tax cashflow",
                              line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
-                             fillcolor="rgba(181,134,58,0.08)"))
+                             fillcolor="rgba(16,185,129,0.08)"))
     fig.add_hline(y=0, line_dash="solid", line_color=COLORS["red"], line_width=1, opacity=0.5)
     fig.update_layout(**PLOTLY_LAYOUT, title="Annual Cashflow (10-Year Projection)",
                       xaxis_title="Year", yaxis_title="Cashflow ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
-                      xaxis=dict(gridcolor="#e8dcc8", dtick=1), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                      xaxis=dict(gridcolor="#1e2d3d", dtick=1), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
     return fig
 
 def chart_payoff_comparison(loan, annual_rate, years, extra_amounts):
@@ -390,7 +416,7 @@ def chart_payoff_comparison(loan, annual_rate, years, extra_amounts):
     fig.update_layout(**PLOTLY_LAYOUT, title="Loan Payoff Comparison",
                       xaxis_title="Year", yaxis_title="Balance ($)",
                       legend=dict(orientation="h", y=-0.2, yanchor="top"),
-                      xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                      xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
     return fig
 
 
@@ -633,28 +659,28 @@ elif page == "📐 Mortgage Calculator":
             annual = amort_df_full.groupby("Year").agg(Principal=("Principal","sum"), Interest=("Interest","sum")).reset_index()
             fig = go.Figure()
             fig.add_trace(go.Bar(name="Principal", x=annual["Year"], y=annual["Principal"], marker_color=COLORS["gold"], marker_line_width=0))
-            fig.add_trace(go.Bar(name="Interest", x=annual["Year"], y=annual["Interest"], marker_color="#d9cdb8", marker_line_width=0))
+            fig.add_trace(go.Bar(name="Interest", x=annual["Year"], y=annual["Interest"], marker_color="#1e3a2a", marker_line_width=0))
             if io_enabled and io_years > 0:
                 fig.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
                               annotation_text="IO → P&I", annotation_position="top")
             fig.update_layout(**PLOTLY_LAYOUT, barmode="stack", title="Annual Principal vs Interest",
                               legend=dict(orientation="h", y=-0.2, yanchor="top"),
                               xaxis_title="Year", yaxis_title="Amount ($)",
-                              xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                              xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
             st.plotly_chart(fig, use_container_width=True)
         with tab2:
             annual_bal = amort_df_full.groupby("Year")["Balance"].last().reset_index()
             fig2 = go.Figure()
             fig2.add_trace(go.Scatter(x=annual_bal["Year"], y=annual_bal["Balance"], name="Balance",
                                       line=dict(color=COLORS["gold"], width=2.5), fill="tozeroy",
-                                      fillcolor="rgba(181,134,58,0.1)"))
+                                      fillcolor="rgba(16,185,129,0.1)"))
             if io_enabled and io_years > 0:
                 fig2.add_vline(x=io_years + 0.5, line_dash="dash", line_color=COLORS["red"],
                                annotation_text="IO → P&I", annotation_position="top")
             fig2.update_layout(**PLOTLY_LAYOUT, title="Loan Balance Over Time",
                                legend=dict(orientation="h", y=-0.2, yanchor="top"),
                                xaxis_title="Year", yaxis_title="Balance ($)",
-                               xaxis=dict(gridcolor="#e8dcc8"), yaxis=dict(gridcolor="#e8dcc8", tickprefix="$", tickformat=",.0f"))
+                               xaxis=dict(gridcolor="#1e2d3d"), yaxis=dict(gridcolor="#1e2d3d", tickprefix="$", tickformat=",.0f"))
             st.plotly_chart(fig2, use_container_width=True)
 
         # ── PAY OFF SOONER ──
@@ -757,8 +783,8 @@ elif page == "📊 Yield Calculator":
             gauge={
                 "axis": {"range": [0, 12], "tickformat": ".0f", "ticksuffix": "%"},
                 "bar": {"color": COLORS["gold"]},
-                "bgcolor": COLORS["parchment_mid"],
-                "bordercolor": COLORS["border"],
+                "bgcolor": "#161b27",
+                "bordercolor": "#1e2d3d",
                 "steps": [
                     {"range": [0, 3.5], "color": "rgba(192,73,58,0.15)"},
                     {"range": [3.5, 5], "color": "rgba(181,134,58,0.15)"},
