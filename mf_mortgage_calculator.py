@@ -122,7 +122,7 @@ st.markdown("""
         letter-spacing: -0.02em !important;
         margin: 0.5rem 0 0.2rem !important;
     }
-    .sidebar-logo p { color: #334155 !important; font-size: 0.62rem !important; letter-spacing: 0.15em; margin: 0; }
+    .sidebar-logo p { color: #334155 !important; font-size: 0.82rem !important; letter-spacing: 0.1em; margin: 0; color: #64748b !important; }
 
     /* Page header banner */
     .page-header {
@@ -134,12 +134,12 @@ st.markdown("""
         margin-bottom: 1.5rem;
     }
     .page-header h1 { color: #f1f5f9 !important; margin: 0 !important; font-size: 1.5rem !important; }
-    .page-header p { color: #475569 !important; margin: 0.2rem 0 0 !important; font-size: 0.78rem !important; letter-spacing: 0.05em; }
+    .page-header p { color: #475569 !important; margin: 0.2rem 0 0 !important; font-size: 0.95rem !important; letter-spacing: 0.02em; color: #94a3b8 !important; }
 
     /* Section labels */
     .section-label {
-        font-size: 0.62rem;
-        letter-spacing: 0.2em;
+        font-size: 0.85rem;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         color: #10b981;
         font-weight: 600;
