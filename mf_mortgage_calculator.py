@@ -97,6 +97,16 @@ st.markdown("""
         letter-spacing: 0.05em !important;
     }
     .stButton > button:hover { background: #059669 !important; }
+    .stDownloadButton > button {
+        background: #161b27 !important;
+        color: #10b981 !important;
+        border: 1px solid #10b981 !important;
+        border-radius: 4px !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+    }
+    .stDownloadButton > button:hover { background: #0d1f17 !important; }
 
     /* Expanders */
     .streamlit-expanderHeader {
@@ -873,7 +883,9 @@ elif page == "📐 Mortgage Calculator":
 
         # ── Save / Export ──
         st.divider()
-        mc_monthly = io_monthly if (io_enabled and io_years > 0) else calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
+        mc_monthly = calc_monthly_payment(loan_amount, interest_rate, int(loan_term))
+        if io_enabled and io_years > 0:
+            mc_monthly = loan_amount * (interest_rate / 100) / 12
         mc_rows = [
             ("Loan Amount", fmt(loan_amount)),
             ("Interest Rate", fmtp(interest_rate)),
