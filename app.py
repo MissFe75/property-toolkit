@@ -531,6 +531,24 @@ st.markdown("""
         .tile { flex: 1 1 130px; padding: 1rem; }
         .tile-value { font-size: 1.15rem; }
         .main .block-container { padding: 0.75rem !important; }
+
+        /* Tabs: allow wrapping so labels don't get squished */
+        .stTabs [data-baseweb="tab-list"] {
+            flex-wrap: wrap !important;
+            gap: 0.25rem !important;
+            padding: 0.25rem !important;
+        }
+        .stTabs [data-baseweb="tab"] {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            font-size: 0.7rem !important;
+            padding: 0.35rem 0.5rem !important;
+            white-space: normal !important;
+            text-align: center !important;
+        }
+
+        /* Plotly: hide the modebar toolbar on mobile to stop it overlapping the title */
+        .modebar-container { display: none !important; }
     }
 
     /* ── p & label text ── */
