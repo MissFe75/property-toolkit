@@ -21,7 +21,7 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; }
@@ -403,8 +403,12 @@ st.markdown("""
         border: 1px solid #D1D5DB !important;
         border-radius: 8px !important;
         color: #1A1A2E !important;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'Inter', sans-serif !important;
         font-size: 0.88rem !important;
+    }
+    textarea, [contenteditable] {
+        font-family: 'Space Grotesk', sans-serif !important;
+        caret-color: #3D5A80 !important;
     }
     .stNumberInput input:focus { border-color: #3D5A80 !important; box-shadow: 0 0 0 3px rgba(61,90,128,0.15) !important; }
     .stNumberInput label, .stSelectbox label {
@@ -412,7 +416,7 @@ st.markdown("""
         font-size: 0.68rem !important;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        font-family: 'JetBrains Mono', monospace !important;
+        font-family: 'Inter', sans-serif !important;
         font-weight: 600 !important;
     }
     .stNumberInput button { background: #F0EBE3 !important; color: #6B7280 !important; border: none !important; border-radius: 6px !important; }
@@ -487,7 +491,7 @@ st.markdown("""
         text-align: center;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .winner-card .wc-label { font-size: 0.62rem; letter-spacing: 0.16em; color: #9CA3AF; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; }
+    .winner-card .wc-label { font-size: 0.62rem; letter-spacing: 0.16em; color: #9CA3AF; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem; font-weight: 700; }
     .winner-card .wc-name  { font-size: 1.4rem; font-weight: 600; color: #3D5A80; font-family: 'Inter', sans-serif; letter-spacing: -0.02em; }
     .winner-card .wc-val   { font-size: 0.78rem; color: #6B7280; margin-top: 0.3rem; }
 
@@ -501,7 +505,7 @@ st.markdown("""
         border: 1px solid #EAE4DC;
         box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .cg-card .cg-label { font-size: 0.62rem; letter-spacing: 0.15em; color: #9CA3AF; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 0.4rem; font-weight: 700; }
+    .cg-card .cg-label { font-size: 0.62rem; letter-spacing: 0.15em; color: #9CA3AF; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.4rem; font-weight: 700; }
     .cg-card .cg-val   { font-size: 1.25rem; font-weight: 800; font-family: 'Inter', sans-serif; letter-spacing: -0.03em; }
     .cg-card .cg-gain  { font-size: 0.78rem; color: #3D5A80; margin-top: 0.3rem; }
 
@@ -520,7 +524,7 @@ st.markdown("""
         letter-spacing: 0.14em;
         color: #9CA3AF;
         text-transform: uppercase;
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'Space Grotesk', sans-serif;
         margin-bottom: 0.6rem;
     }
 
@@ -554,8 +558,54 @@ st.markdown("""
     /* ── p & label text ── */
     p, label, .stMarkdown { color: #4B5563 !important; font-family: 'Inter', sans-serif !important; font-weight: 300 !important; }
     .stMarkdown strong { color: #1A1A2E !important; font-weight: 600 !important; }
+
+    /* ── Kill dotted zeros: high-specificity input override ── */
+    div[data-testid="stAppViewContainer"] input,
+    div[data-testid="stAppViewContainer"] input[type="number"],
+    div[data-testid="stAppViewContainer"] input[type="text"],
+    div[data-testid="stAppViewContainer"] [data-baseweb="base-input"] input,
+    div[data-testid="stAppViewContainer"] [data-baseweb="input"] input {
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-variant-numeric: normal !important;
+        font-variant: normal !important;
+        font-feature-settings: normal !important;
+        caret-color: #3D5A80 !important;
+    }
+
+    /* ── FINAL OVERRIDE: clean zeros in all inputs ── */
+    input,
+    .stNumberInput input,
+    [data-testid="stNumberInput"] input {
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-variant-numeric: normal !important;
+        font-feature-settings: normal !important;
+    }
 </style>""", unsafe_allow_html=True)
 
+
+# Inject JS to force Space Grotesk on inputs at runtime — overrides Streamlit's own bundled CSS
+st.components.v1.html("""
+<script>
+function fixInputFonts() {
+    const style = document.createElement('style');
+    style.textContent = `
+        input, input[type="number"], input[type="text"],
+        [data-testid="stNumberInput"] input,
+        [data-baseweb="input"] input,
+        [data-baseweb="base-input"] input {
+            font-family: 'Space Grotesk', sans-serif !important;
+            font-variant-numeric: normal !important;
+            font-feature-settings: normal !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+fixInputFonts();
+// Re-apply after Streamlit re-renders
+const observer = new MutationObserver(fixInputFonts);
+observer.observe(document.body, { childList: true, subtree: true });
+</script>
+""", height=0)
 
 # ─────────────────────────────────────────────
 # TILE HELPERS
@@ -666,7 +716,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown("<p style='font-size:0.6rem;color:#9CA3AF;letter-spacing:0.18em;text-transform:uppercase;font-family:JetBrains Mono,monospace;font-weight:700;'>DISCLAIMER</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:0.6rem;color:#9CA3AF;letter-spacing:0.18em;text-transform:uppercase;font-family:Space Grotesk,sans-serif;font-weight:700;'>DISCLAIMER</p>", unsafe_allow_html=True)
     st.markdown("<p style='font-size:0.72rem;color:#6B7280;line-height:1.6;'>Figures are indicative only and do not constitute financial or tax advice. Consult a qualified adviser.</p>", unsafe_allow_html=True)
 
 
@@ -1913,7 +1963,7 @@ elif page == "Compare Properties":
         ("Stamp Duty",          "stamp",           False, lambda v: fmt(v)),
     ]
 
-    header_cells = "<th style='text-align:left;padding:0.7rem 1rem;color:#9CA3AF;font-size:0.62rem;letter-spacing:0.14em;font-family:JetBrains Mono,monospace;font-weight:700;border-bottom:1px solid #EAE4DC;'>METRIC</th>"
+    header_cells = "<th style='text-align:left;padding:0.7rem 1rem;color:#9CA3AF;font-size:0.62rem;letter-spacing:0.14em;font-family:Space Grotesk,sans-serif;font-weight:700;border-bottom:1px solid #EAE4DC;'>METRIC</th>"
     for r in results:
         header_cells += f"<th style='text-align:right;padding:0.7rem 1rem;color:#3D5A80;font-size:0.88rem;font-weight:600;font-family:Inter,sans-serif;letter-spacing:-0.02em;border-bottom:1px solid #EAE4DC;'>{r['name']}</th>"
 
@@ -1929,7 +1979,7 @@ elif page == "Compare Properties":
             color  = "#3D5A80" if is_win else "#9CA3AF"
             weight = "700" if is_win else "400"
             trophy = "★ " if is_win else ""
-            row_html += f"<td style='text-align:right;padding:0.65rem 1rem;color:{color};font-size:0.82rem;font-weight:{weight};font-family:JetBrains Mono,monospace;white-space:nowrap;'>{trophy}{fmt_fn(r[key])}</td>"
+            row_html += f"<td style='text-align:right;padding:0.65rem 1rem;color:{color};font-size:0.82rem;font-weight:{weight};font-family:Space Grotesk,sans-serif;white-space:nowrap;'>{trophy}{fmt_fn(r[key])}</td>"
         row_html += "</tr>"
         body_rows += row_html
 
