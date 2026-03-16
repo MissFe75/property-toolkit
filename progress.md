@@ -4,8 +4,9 @@ Last updated: 16 March 2026
 ## About
 - Owner: Fiona Graham (Miss Fe! 😄)
 - Business: Sextant Digital
-- Domain: sextantdigital.com.au (pending ID verification at Crazy Domains)
-- Email: hello@sextantdigital.com.au (Zoho setup pending domain activation)
+- Domain: sextantdigital.com.au (ACTIVE ✅)
+- Email: hello@sextantdigital.com.au
+  (Zoho setup - MX records added, pending titan propagation)
 - Backup email: sextantdigital@gmail.com
 
 ## App Details
@@ -19,73 +20,86 @@ Last updated: 16 March 2026
 ## Landing Page Details
 - File: index.html
 - Location: Desktop/sextant-landing-page/
-- Status: Built locally, NOT yet live on domain
+- Netlify URL: property-compass.netlify.app ✅ LIVE!!
+- Custom domain: sextantdigital.com.au (pending DNS propagation ⏳)
+- GitHub repo: github.com/missfe75/sextant-landing-page
 
 ## Design System
 - Background: cream/beige #F5F0E8
 - Accent colour: slate blue #3D5A80
 - Font: Inter
 - Style: clean, minimal, professional
-- Hero image: 3_houses.jpg (landing page)
 - Compass: clean SVG line icon in slate blue
+- Hero images: 3_houses.jpg (landing page)
+
+## App Pages & Hero Images
+- 🏠 Mortgage Calculator: house & key tag
+- 📊 Yield Calculator: coins.jpg
+- 🏡 Property Analyser: piggybank.jpg
+- ⚖️ Compare Properties: magnify.jpg
+- 🔍 CGT: room.jpg
 
 ## Features Built ✅
 - Mortgage Calculator (P&I and Interest Only)
+- Fortnightly repayments on Mortgage Calculator
 - Rental Yield Calculator
 - Property Analyser
 - CGT Estimator
 - Compare Properties
-- Save as PDF button on every page
-- Hero images on all pages including piggybank 🐷
-- Fortnightly repayments on Mortgage Calculator
 - Fortnightly repayments on Compare Properties
-- Slim slate blue branding banner at top of app
-- Compass SVG icon in app sidebar
+- Save as PDF button on every page
+- Hero images on all pages
+- Annual Expenses always visible (no expander)
+- Compass SVG icon in app header
+- Cohesive cream/beige header matching landing page
+- "Property Compass / by Sextant Digital" branding
 - Live on Streamlit Cloud ✅
 
-## Landing Page — Built ✅
-- Clean nav bar — compass icon + Property Compass + by sextantdigital.com.au
-- Three houses hero image with "Navigate your next property move" bottom right
-- "Free tools for buying & investing in Aussie property" section
+## Landing Page — Built & Live ✅
+- Clean nav bar — compass icon + Property Compass
+  + by Sextant Digital
+- Three houses hero image
+- "Navigate your next property move" bottom right
+- "Free tools for buying & investing in Aussie property"
 - Example property analysis card mock-up
-- Trust tiles — no emojis, clean icons
-- Feature cards with SVG icons
-- "Everything you need to analyse Aussie property" section
+- Trust tiles — clean SVG icons, no emojis
 - Five feature cards with descriptions
+- "Everything you need to analyse Aussie property" section
+- Get in touch section with hello@sextantdigital.com.au
 - Footer with compass SVG icon
-- Launch App button linking to Streamlit app
+- Google Analytics tracking (G-FS3GY4YSKN)
+- Launch App button → property-compass-app.streamlit.app
 
-## App Changes NOT YET pushed to GitHub 🔧
-- Sidebar renamed to "Property Compass"
-- "by sextantdigital.com.au" added below name
-- Compass SVG icon added to sidebar
-- Slate blue branding banner at top
-- Fortnightly repayment added
-- Compare Properties expander fix
-- Prepared for/by placeholder text removed
-- Streamlit deploy toolbar hidden
+## Infrastructure ✅
+- GitHub: github.com/missfe75
+- Streamlit Cloud: property-compass-app.streamlit.app
+- Netlify: property-compass.netlify.app
+- Domain: sextantdigital.com.au (Crazy Domains)
+- Email: Zoho Mail (hello@sextantdigital.com.au)
+- Analytics: Google Analytics
 
 ## Still To Do 📋
-### Domain & Email
-- ⏳ Wait for Crazy Domains ID verification
-- ⏳ Add Zoho TXT record to DNS once domain active
-- ⏳ Create hello@sextantdigital.com.au mailbox
-- ⏳ Point sextantdigital.com.au to landing page
+### Email
+- ⏳ Wait for titan MX records to fully disappear
+- ⏳ Verify Zoho MX records
+- ⏳ Test hello@sextantdigital.com.au receives emails
 
-### Landing Page
-- 📧 Set up Mailchimp email signup form
-- 📧 Add hello@sextantdigital.com.au to footer
-- 🌍 Go live on sextantdigital.com.au
+### Domain
+- ⏳ Wait for sextantdigital.com.au to point to
+  Netlify landing page (DNS propagating)
+- ✅ A records updated to 75.2.60.5 in Crazy Domains
 
-### App
-- 🚀 Push ALL changes to GitHub
+### App tweaks
+- 🎨 Fix white gap above hero images (Streamlit padding)
+- 🐷 Find piggybank a home on another page
 - 🎨 General design tweaks as needed
 
 ### Future Ideas 🚀
-- Claude API integration for AI property analysis
+- Claude API for AI property analysis
 - CoreLogic API for real Australian property data
 - More AI powered tools under Sextant Digital brand
 - Consider Carrd for future landing pages
+- Maritime crew rostering app (separate project!)
 
 ## Important Notes
 - App is FREE — no payments needed
@@ -93,3 +107,5 @@ Last updated: 16 March 2026
 - Streamlit auto-updates when GitHub is updated
 - DO NOT push until all changes tested locally
 - progress.md lives in Desktop/property-toolkit/
+- Landing page images must be in same folder as
+  index.html to display correctly on Netlify!!

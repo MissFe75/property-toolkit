@@ -23,7 +23,7 @@ st.markdown("""
 <div style="
     width:100%; background:#F5F0E8;
     border-bottom:1px solid rgba(61,90,128,0.12);
-    display:flex; align-items:center;
+    display:flex; align-items:center; justify-content:space-between;
     padding:0 2rem; height:72px;
     position:fixed; top:0; left:0; right:0; z-index:999999;
     margin:0; box-sizing:border-box;
@@ -32,7 +32,7 @@ st.markdown("""
         <svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#3D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>
         <div style="display:flex;flex-direction:column;line-height:1.2;gap:1px;">
             <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:#3D5A80;letter-spacing:-0.025em;">Property Compass</span>
-            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital &nbsp;·&nbsp; Calculators for buying and investing in Aussie property</span>
         </div>
     </div>
 </div>
@@ -65,7 +65,18 @@ st.markdown("""
     [data-testid="stSidebar"] * { color: #1A1A2E !important; }
 
     /* ── Main padding ── */
-    .main .block-container { padding: 1.5rem 2rem 2rem !important; max-width: 1400px; }
+    .main .block-container { padding: 0 2rem 2rem !important; max-width: 1400px; }
+    [data-testid="stMainBlockContainer"] { padding-top: 0 !important; margin-top: 0 !important; }
+    .main > div:first-child { padding-top: 0 !important; margin-top: 0 !important; }
+    [data-testid="stVerticalBlock"] > div:first-child { margin-top: 0 !important; padding-top: 0 !important; }
+    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
+
+    /* ── Sidebar top gap ── */
+    [data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
+    section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
+    [data-testid="stSidebarContent"] { padding-top: 0 !important; }
+    [data-testid="stSidebarUserContent"] { padding-top: 0 !important; margin-top: 0 !important; }
+    [data-testid="stSidebar"] .sidebar-logo { margin-top: -2rem !important; }
 
     /* ── Headings ── */
     h1, h2, h3 { font-family: 'Inter', sans-serif !important; font-weight: 600 !important; letter-spacing: -0.03em !important; color: #1A1A2E !important; }
@@ -1362,9 +1373,9 @@ def chart_payoff_comparison(loan, annual_rate, years, extra_amounts):
 if page == "Property Analyser":
     _piggybank = _img_b64("piggybank.jpg")
     st.markdown(f"""
-    <div class="page-header" style="display:block;padding:0 0 1.25rem;border-bottom:1px solid #E8E2D9;margin-top:-1.5rem;">
+    <div class="page-header" style="display:block;padding:0 0 0.5rem;border-bottom:1px solid #E8E2D9;margin-top:-1.2rem;">
         <div class="page-hero-banner">
-            <img src="data:image/jpeg;base64,{_piggybank}" alt="Property Investment">
+            <img src="data:image/jpeg;base64,{_piggybank}" alt="Property Investment" class="hero-top">
             <div class="page-hero-overlay">
                 <h1>Property Analyser</h1>
                 <p class="sub">Property investment analysis — cashflow · stamp duty · depreciation · CGT · capital growth · break-even</p>
