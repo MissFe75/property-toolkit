@@ -13,15 +13,40 @@ from datetime import date as _date
 # ─────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="Sextant Property Compass",
+    page_title="Property Compass",
     page_icon="🏡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 st.markdown("""
+<div style="
+    width:100%; background:#F5F0E8;
+    border-bottom:1px solid rgba(61,90,128,0.12);
+    display:flex; align-items:center;
+    padding:0 2rem; height:72px;
+    position:fixed; top:0; left:0; right:0; z-index:999999;
+    margin:0; box-sizing:border-box;
+">
+    <div style="display:flex;flex-direction:row;align-items:center;gap:0.6rem;text-decoration:none;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#3D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>
+        <div style="display:flex;flex-direction:column;line-height:1.2;gap:1px;">
+            <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:#3D5A80;letter-spacing:-0.025em;">Property Compass</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital</span>
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+    /* ── Hide Streamlit header ── */
+    header[data-testid="stHeader"] { display: none !important; }
+
+    /* ── Offset app body for fixed banner ── */
+    .stApp { margin-top: 72px !important; }
 
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; }
@@ -191,6 +216,18 @@ st.markdown("""
         object-position: center center;
         display: block;
     }
+    .page-hero-banner > img.hero-top {
+        object-position: top center !important;
+    }
+    .page-hero-banner.hero-contain {
+        height: 500px !important;
+        background-color: #F5F0E8;
+    }
+    .page-hero-banner.hero-contain > img {
+        object-fit: contain !important;
+        object-position: center top !important;
+        background-color: #F5F0E8;
+    }
     .page-hero-overlay {
         position: absolute;
         bottom: 0; left: 0; right: 0;
@@ -244,13 +281,32 @@ st.markdown("""
         color: #FFFFFF !important;
         font-size: 1rem !important;
         font-weight: 300 !important;
-        margin: 0 !important;
+        margin: 0 0 2px 0 !important;
+        padding: 0 !important;
         letter-spacing: 0.02em !important;
         white-space: nowrap !important;
         line-height: 1.2 !important;
         font-family: 'Inter', sans-serif !important;
         text-align: left !important;
-        padding-left: 4px !important;
+    }
+    /* Zero out any Streamlit / browser default p margins inside the lockup */
+    .sidebar-logo-text p,
+    .sidebar-logo-text .stMarkdown p {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .domain-text {
+        color: #FFFFFF !important;
+        font-size: 11px !important;
+        font-weight: 300 !important;
+        letter-spacing: 0.08em !important;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8) !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        line-height: 1.2 !important;
+        text-align: left !important;
     }
     .sidebar-tagline {
         text-align: center !important;
@@ -608,6 +664,112 @@ observer.observe(document.body, { childList: true, subtree: true });
 """, height=0)
 
 # ─────────────────────────────────────────────
+# HOLD-TO-ACCELERATE on number input +/- buttons
+# Single click → 1× step.  Hold 1-2 s → 5× step.  Hold 2+ s → 20× step.
+# Uses window.parent to reach the Streamlit page DOM from the component frame.
+# ─────────────────────────────────────────────
+st.components.v1.html("""
+<script>
+(function () {
+    'use strict';
+
+    // The component runs inside a same-origin iframe; the real Streamlit DOM
+    // lives one level up in window.parent.
+    var pd = (window.parent || window).document;
+
+    var TICK_MS = 150;   // interval between accelerated steps (ms)
+
+    var intervalId = null;
+    var holdStart  = null;
+
+    // Returns how many normal steps to jump per tick based on hold duration.
+    function multiplier() {
+        if (!holdStart) return 1;
+        var ms = Date.now() - holdStart;
+        if (ms >= 2000) return 20;
+        if (ms >= 1000) return 5;
+        return 1;
+    }
+
+    function doStep(btn) {
+        // Walk up to the container that holds the <input type="number">
+        var container = btn.closest('[data-testid="stNumberInputContainer"]')
+                     || btn.closest('[data-testid="stNumberInput"]')
+                     || btn.parentElement;
+        if (!container) return;
+
+        var input = container.querySelector('input[type="number"]');
+        if (!input) return;
+
+        // Determine direction from the button's data-testid or its visible text
+        var tid  = btn.getAttribute('data-testid') || '';
+        var isUp = tid === 'stNumberInputStepUp'
+                || (!tid && (btn.textContent || '').trim() === '+');
+
+        var step    = parseFloat(input.step)  || 1;
+        var minVal  = input.min !== '' ? parseFloat(input.min) : -Infinity;
+        var maxVal  = input.max !== '' ? parseFloat(input.max) :  Infinity;
+        var current = parseFloat(input.value) || 0;
+
+        var delta    = step * multiplier();
+        var newValue = isUp ? current + delta : current - delta;
+
+        // Clamp to declared min/max
+        newValue = Math.max(minVal, Math.min(maxVal, newValue));
+
+        // Round to the same decimal precision as the step to prevent float drift
+        var decimals = (step.toString().split('.')[1] || '').length;
+        newValue = parseFloat(newValue.toFixed(decimals));
+
+        // React tracks input state via the native property descriptor; we must
+        // go through it (not just set .value) to fire a proper onChange event.
+        var win = (window.parent || window);
+        var setter = Object.getOwnPropertyDescriptor(
+            win.HTMLInputElement.prototype, 'value'
+        ).set;
+        setter.call(input, String(newValue));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function startHold(btn) {
+        holdStart = Date.now();
+        if (intervalId) clearInterval(intervalId);
+        // Begin ticking; the multiplier() function gates speed by elapsed time.
+        intervalId = setInterval(function () {
+            if (Date.now() - holdStart >= 1000) doStep(btn);
+        }, TICK_MS);
+    }
+
+    function stopHold() {
+        if (intervalId) { clearInterval(intervalId); intervalId = null; }
+        holdStart = null;
+    }
+
+    function attach(btn) {
+        if (btn._holdAttached) return;
+        btn._holdAttached = true;
+        btn.addEventListener('mousedown',   function () { startHold(btn); });
+        btn.addEventListener('mouseup',     stopHold);
+        btn.addEventListener('mouseleave',  stopHold);
+        btn.addEventListener('touchstart',  function () { startHold(btn); }, { passive: true });
+        btn.addEventListener('touchend',    stopHold);
+        btn.addEventListener('touchcancel', stopHold);
+    }
+
+    function scan() {
+        pd.querySelectorAll(
+            '[data-testid="stNumberInputStepUp"], [data-testid="stNumberInputStepDown"]'
+        ).forEach(attach);
+    }
+
+    // Re-scan whenever Streamlit re-renders widgets into the DOM
+    new MutationObserver(scan).observe(pd.body, { childList: true, subtree: true });
+    scan();
+})();
+</script>
+""", height=0)
+
+# ─────────────────────────────────────────────
 # TILE HELPERS
 # ─────────────────────────────────────────────
 
@@ -702,9 +864,6 @@ with st.sidebar:
     st.markdown(f"""
     <div class="sidebar-logo">
         <img src="data:image/jpeg;base64,{_house_b64}" class="sidebar-banner" alt="House">
-        <div class="sidebar-logo-text">
-            <h2>Sextant Property Compass</h2>
-        </div>
     </div>
     <p class="sidebar-tagline">Navigate your next property move</p>
     """, unsafe_allow_html=True)
@@ -901,7 +1060,7 @@ def _make_pdf(page_title, rows, today_str, report_details=None):
     elems = []
 
     # Header bar
-    hdr = Table([[Paragraph("Sextant Property Compass  ·  Navigate your next property move", brand_s),
+    hdr = Table([[Paragraph("Property Compass  ·  sextantdigital.com.au", brand_s),
                   Paragraph(hdr_date, date_s)]],
                 colWidths=[120*mm, 46*mm])
     hdr.setStyle(TableStyle([
@@ -1003,7 +1162,7 @@ def _make_compare_pdf(results, metrics, today_str, report_details=None):
     elems = []
 
     # Header
-    hdr = Table([[Paragraph("Sextant Property Compass  ·  Navigate your next property move", brand_s),
+    hdr = Table([[Paragraph("Property Compass  ·  sextantdigital.com.au", brand_s),
                   Paragraph(hdr_date, date_s)]],
                 colWidths=[120*mm, 46*mm])
     hdr.setStyle(TableStyle([
@@ -1169,7 +1328,7 @@ def chart_cashflow(annual_rent, annual_interest, annual_expenses, dep_df, marg_r
                              fillcolor="rgba(61,90,128,0.08)"))
     fig.add_hline(y=0, line_dash="solid", line_color="#ef4444", line_width=1, opacity=0.4)
     fig.update_layout(**_chart_layout(
-        title=dict(text="Annual Cashflow (10-Year Projection)", font=dict(size=14, color="#3D5A80", family="Inter")),
+        title=dict(text="10-Year Cashflow Estimate (based on your inputs)", font=dict(size=14, color="#3D5A80", family="Inter")),
         xaxis_title="Year", yaxis_title="Cashflow ($)",
         legend=dict(orientation="h", y=-0.2, yanchor="top", font=dict(color="#374151", size=12, family="Inter")),
         xaxis=dict(gridcolor="rgba(0,0,0,0.06)", dtick=1),
@@ -1203,9 +1362,9 @@ def chart_payoff_comparison(loan, annual_rate, years, extra_amounts):
 if page == "Property Analyser":
     _piggybank = _img_b64("piggybank.jpg")
     st.markdown(f"""
-    <div class="page-header" style="display:block;padding:0 0 1.25rem;border-bottom:1px solid #E8E2D9;">
+    <div class="page-header" style="display:block;padding:0 0 1.25rem;border-bottom:1px solid #E8E2D9;margin-top:-1.5rem;">
         <div class="page-hero-banner">
-            <img src="data:image/jpeg;base64,{_piggybank}" alt="Property Investment" style="object-position: top center;">
+            <img src="data:image/jpeg;base64,{_piggybank}" alt="Property Investment">
             <div class="page-hero-overlay">
                 <h1>Property Analyser</h1>
                 <p class="sub">Property investment analysis — cashflow · stamp duty · depreciation · CGT · capital growth · break-even</p>
@@ -1218,9 +1377,9 @@ if page == "Property Analyser":
     st.markdown('<div class="report-details-wrap"><div class="report-details-title">Report Details</div></div>', unsafe_allow_html=True)
     _rd1, _rd2, _rd3 = st.columns([2, 2, 1])
     with _rd1:
-        st.text_input("Prepared for", placeholder="Client name", key="rpt_prepared_for")
+        st.text_input("Prepared for", key="rpt_prepared_for")
     with _rd2:
-        st.text_input("Prepared by", placeholder="Adviser / broker name", key="rpt_prepared_by")
+        st.text_input("Prepared by", key="rpt_prepared_by")
     with _rd3:
         st.text_input("Date", key="rpt_date")
     st.text_area("Notes", placeholder="Any additional notes for this report...", key="rpt_notes", height=70, label_visibility="visible")
@@ -1234,36 +1393,11 @@ if page == "Property Analyser":
         other_income = st.number_input("Other annual income ($)", min_value=0.0, value=80000.0, step=1000.0,
                                        help="Salary / other income — used to estimate marginal tax rate")
 
-    with col2:
         section("Property Details", _svg("house"))
         purchase_price  = st.number_input("Purchase price ($)", min_value=1.0, value=500000.0, step=1000.0)
         weekly_rent     = st.number_input("Weekly rent ($)", min_value=0.0, value=500.0, step=10.0)
         vacancy_rate    = st.number_input("Vacancy rate (%)", min_value=0.0, max_value=100.0, value=4.0, step=0.5)
-        _pa_council_v   = st.session_state.get("pa_exp_council",   1500.0)
-        _pa_ins_v       = st.session_state.get("pa_exp_insurance", 1200.0)
-        _pa_water_v     = st.session_state.get("pa_exp_water",      600.0)
-        _pa_pm_pct_v    = st.session_state.get("pa_exp_pm_pct",       8.0)
-        _pa_bc_v        = st.session_state.get("pa_exp_bc",            0.0)
-        _pa_maint_v     = st.session_state.get("pa_exp_maint",        800.0)
-        _pa_other_v     = st.session_state.get("pa_exp_other",         0.0)
-        _pa_pm_v        = (_pa_pm_pct_v / 100) * (weekly_rent * 52)
-        _pa_exp_total   = _pa_council_v + _pa_ins_v + _pa_water_v + _pa_pm_v + _pa_bc_v + _pa_maint_v + _pa_other_v
-        with st.expander(f"Annual Expenses  —  ${_pa_exp_total:,.0f}"):
-            exp_council   = st.number_input("Council Rates ($)",          min_value=0.0, value=1500.0, step=50.0,           key="pa_exp_council")
-            exp_insurance = st.number_input("Landlord Insurance ($)",     min_value=0.0, value=1200.0, step=50.0,           key="pa_exp_insurance")
-            exp_water     = st.number_input("Water ($)",                  min_value=0.0, value=600.0,  step=50.0,           key="pa_exp_water")
-            pa_pm_pct     = st.number_input("Property Management (%)",    min_value=0.0, max_value=20.0, value=8.0, step=0.5, key="pa_exp_pm_pct")
-            exp_pm        = (pa_pm_pct / 100) * (weekly_rent * 52)
-            st.caption(f"Calculated: ${exp_pm:,.0f}/yr")
-            exp_bc        = st.number_input("Body Corporate ($)",         min_value=0.0, value=0.0,    step=100.0,          key="pa_exp_bc")
-            exp_maint     = st.number_input("Maintenance & Repairs ($)",  min_value=0.0, value=800.0,  step=50.0,           key="pa_exp_maint")
-            exp_other_lbl = st.text_input("Other description", value="", placeholder="e.g. Pest inspection", key="pa_exp_other_lbl")
-            exp_other     = st.number_input("Other ($)", min_value=0.0, value=0.0, step=50.0, key="pa_exp_other")
-            annual_expenses = exp_council + exp_insurance + exp_water + exp_pm + exp_bc + exp_maint + exp_other
-            st.markdown(f"**TOTAL ANNUAL EXPENSES: ${annual_expenses:,.0f}**")
 
-    col1, col2 = st.columns(2)
-    with col1:
         section("Loan Details", _svg("bank"))
         loan_amount   = st.number_input("Loan amount ($)", min_value=0.0, value=400000.0, step=1000.0)
         interest_rate = st.number_input("Interest rate (%)", min_value=0.0, value=6.0, step=0.1)
@@ -1275,6 +1409,20 @@ if page == "Property Analyser":
                                           max_value=int(loan_term) - 1, value=min(5, int(loan_term) - 1), key="io_yrs_pa")
 
     with col2:
+        section("Annual Expenses", _svg("coins"))
+        exp_council   = st.number_input("Council Rates ($)",          min_value=0.0, value=1500.0, step=50.0,             key="pa_exp_council")
+        exp_insurance = st.number_input("Landlord Insurance ($)",     min_value=0.0, value=1200.0, step=50.0,             key="pa_exp_insurance")
+        exp_water     = st.number_input("Water ($)",                  min_value=0.0, value=600.0,  step=50.0,             key="pa_exp_water")
+        pa_pm_pct     = st.number_input("Property Management (%)",    min_value=0.0, max_value=20.0, value=8.0, step=0.5, key="pa_exp_pm_pct")
+        exp_pm        = (pa_pm_pct / 100) * (weekly_rent * 52)
+        st.caption(f"Calculated: ${exp_pm:,.0f}/yr")
+        exp_bc        = st.number_input("Body Corporate ($)",         min_value=0.0, value=0.0,    step=100.0,            key="pa_exp_bc")
+        exp_maint     = st.number_input("Maintenance & Repairs ($)",  min_value=0.0, value=800.0,  step=50.0,             key="pa_exp_maint")
+        exp_other_lbl = st.text_input("Other description", value="", placeholder="e.g. Pest inspection",                 key="pa_exp_other_lbl")
+        exp_other     = st.number_input("Other ($)",                  min_value=0.0, value=0.0,    step=50.0,             key="pa_exp_other")
+        annual_expenses = exp_council + exp_insurance + exp_water + exp_pm + exp_bc + exp_maint + exp_other
+        st.markdown(f"<p style='font-size:0.8rem;font-weight:600;color:#3D5A80;margin:0.4rem 0 0.8rem;'>Total: ${annual_expenses:,.0f}/yr</p>", unsafe_allow_html=True)
+
         section("Depreciation", _svg("chart-down"))
         build_cost  = st.number_input("Construction / build cost ($)", min_value=0.0, value=200000.0, step=1000.0)
         plant_cost  = st.number_input("Plant & equipment value ($)", min_value=0.0, value=20000.0, step=500.0)
@@ -1325,6 +1473,7 @@ if page == "Property Analyser":
     tab1, tab2, tab3 = st.tabs(["Cashflow Projection", "Principal vs Interest", "Loan Balance"])
     with tab1:
         st.plotly_chart(chart_cashflow(annual_rent, annual_interest, annual_expenses, dep_df, marg), use_container_width=True)
+        st.caption("Estimates use your entered rent, expenses and interest rate held constant. Actual cashflow will vary with market conditions, rate changes and vacancy.")
     with tab2:
         st.plotly_chart(chart_principal_interest(loan_amount, interest_rate, int(loan_term)), use_container_width=True)
     with tab3:
@@ -1463,7 +1612,7 @@ if page == "Property Analyser":
             yaxis=dict(gridcolor="rgba(0,0,0,0.06)", tickprefix="$", tickformat=",.0f"),
         ))
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("Capital growth projections are estimates only. Past growth does not guarantee future performance.")
+        st.warning("Capital growth projections are estimates only. Past growth does not guarantee future performance.")
 
     # ── Save as PDF ──
     st.divider()
@@ -1542,10 +1691,11 @@ elif page == "Mortgage Calculator":
             extra_interest  = total_interest - pi_total_int
 
             tile_row([
-                tile(f"IO Repayment (first {io_years}y)", fmt(io_monthly),   icon=_svg("card"), accent="blue"),
-                tile(f"P&I Repayment (after IO)",        fmt(pi_monthly),    icon=_svg("card"), accent="green"),
-                tile("Total Interest",                   fmt(total_interest), icon=_svg("chart-bar"), accent="amber"),
-                tile("Extra Interest vs P&I",            fmt(extra_interest), icon=_svg("lightning"), accent="red"),
+                tile(f"IO Repayment (first {io_years}y)", fmt(io_monthly),          icon=_svg("card"),      accent="blue"),
+                tile("IO Fortnightly",                    fmt(io_monthly*12/26),    icon=_svg("calendar"),  accent="purple"),
+                tile(f"P&I Repayment (after IO)",         fmt(pi_monthly),          icon=_svg("card"),      accent="green"),
+                tile("Total Interest",                    fmt(total_interest),      icon=_svg("chart-bar"), accent="amber"),
+                tile("Extra Interest vs P&I",             fmt(extra_interest),      icon=_svg("lightning"), accent="red"),
             ])
             insight(f"<strong>Interest-only for {io_years} years costs an extra {fmt(extra_interest)} in total interest</strong> compared to a standard P&I loan.<br>"
                     f"Your repayments jump from {fmt(io_monthly)}/mo to {fmt(pi_monthly)}/mo when the IO period ends — plan for this.")
@@ -1556,10 +1706,11 @@ elif page == "Mortgage Calculator":
             amort_df_full  = build_amortization(loan_amount, interest_rate, int(loan_term))
 
             tile_row([
-                tile("Monthly Repayment", fmt(monthly),        icon=_svg("card"), accent="green"),
-                tile("Weekly Repayment",  fmt(monthly*12/52),  icon=_svg("calendar"), accent="teal"),
-                tile("Total Interest",    fmt(total_interest),  icon=_svg("chart-bar"), accent="amber"),
-                tile("Total Paid",        fmt(total_paid),      icon=_svg("coins"), accent="blue"),
+                tile("Monthly Repayment",     fmt(monthly),           icon=_svg("card"),      accent="green"),
+                tile("Fortnightly Repayment", fmt(monthly*12/26),     icon=_svg("calendar"),  accent="purple"),
+                tile("Weekly Repayment",      fmt(monthly*12/52),     icon=_svg("calendar"),  accent="teal"),
+                tile("Total Interest",        fmt(total_interest),    icon=_svg("chart-bar"), accent="amber"),
+                tile("Total Paid",            fmt(total_paid),        icon=_svg("coins"),     accent="blue"),
             ])
 
         tab1, tab2 = st.tabs(["Principal vs Interest", "Loan Balance"])
@@ -1737,13 +1888,24 @@ elif page == "Yield Calculator":
         yld_rate = st.number_input("Interest rate (%)", value=6.0, step=0.1, key="yld_rate")
     with col3:
         yld_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30, key="yld_term")
+    col1, col2 = st.columns(2)
+    with col1:
+        yld_io_enabled = st.radio("Loan type", ["Principal & Interest", "Interest Only"], horizontal=True, key="yld_io") == "Interest Only"
+    with col2:
+        yld_io_years = 0
+        if yld_io_enabled:
+            yld_io_years = st.number_input("Interest-only period (years)", min_value=1,
+                                           max_value=int(yld_term) - 1, value=min(5, int(yld_term) - 1), key="yld_io_yrs")
 
     if purchase_price > 0:
         annual_rent_gross   = weekly_rent * 52
         annual_rent_net     = annual_rent_gross * (1 - vacancy_rate / 100)
         gross_yield         = (annual_rent_gross / purchase_price) * 100
         net_yield           = ((annual_rent_net - annual_expenses) / purchase_price) * 100
-        yld_monthly         = calc_monthly_payment(yld_loan, yld_rate, int(yld_term))
+        if yld_io_enabled and yld_io_years > 0:
+            yld_monthly = yld_loan * (yld_rate / 100) / 12   # interest-only repayment
+        else:
+            yld_monthly = calc_monthly_payment(yld_loan, yld_rate, int(yld_term))
         yld_weekly          = yld_monthly * 12 / 52
         net_weekly_cashflow = (annual_rent_net - annual_expenses - yld_monthly * 12) / 52
         cf_pos              = net_weekly_cashflow >= 0
@@ -1898,28 +2060,19 @@ elif page == "Compare Properties":
             rent     = st.number_input("Weekly rent ($)", min_value=0.0, value=default_rents[i], step=10.0, key=f"cmp_rent_{i}")
             loan     = st.number_input("Loan amount ($)", min_value=0.0, value=default_loans[i], step=1000.0, key=f"cmp_loan_{i}")
             rate     = st.number_input("Interest rate (%)", min_value=0.0, value=default_rates[i], step=0.1, key=f"cmp_rate_{i}")
-            _cmp_council_v  = st.session_state.get(f"cmp_exp_council_{i}",   1500.0)
-            _cmp_ins_v      = st.session_state.get(f"cmp_exp_ins_{i}",        1200.0)
-            _cmp_water_v    = st.session_state.get(f"cmp_exp_water_{i}",       600.0)
-            _cmp_pm_pct_v   = st.session_state.get(f"cmp_exp_pm_pct_{i}",       8.0)
-            _cmp_bc_v       = st.session_state.get(f"cmp_exp_bc_{i}",           0.0)
-            _cmp_maint_v    = st.session_state.get(f"cmp_exp_maint_{i}",       800.0)
-            _cmp_other_v    = st.session_state.get(f"cmp_exp_other_{i}",        0.0)
-            _cmp_pm_v       = (_cmp_pm_pct_v / 100) * (rent * 52)
-            _cmp_exp_total  = _cmp_council_v + _cmp_ins_v + _cmp_water_v + _cmp_pm_v + _cmp_bc_v + _cmp_maint_v + _cmp_other_v
-            with st.expander(f"Annual Expenses  —  ${_cmp_exp_total:,.0f}"):
-                cmp_council   = st.number_input("Council Rates ($)",         min_value=0.0, value=1500.0, step=50.0,           key=f"cmp_exp_council_{i}")
-                cmp_insurance = st.number_input("Landlord Insurance ($)",    min_value=0.0, value=1200.0, step=50.0,           key=f"cmp_exp_ins_{i}")
-                cmp_water     = st.number_input("Water ($)",                 min_value=0.0, value=600.0,  step=50.0,           key=f"cmp_exp_water_{i}")
-                cmp_pm_pct    = st.number_input("Property Management (%)",   min_value=0.0, max_value=20.0, value=8.0, step=0.5, key=f"cmp_exp_pm_pct_{i}")
-                cmp_pm        = (cmp_pm_pct / 100) * (rent * 52)
-                st.caption(f"Calculated: ${cmp_pm:,.0f}/yr")
-                cmp_bc        = st.number_input("Body Corporate ($)",        min_value=0.0, value=0.0,    step=100.0,          key=f"cmp_exp_bc_{i}")
-                cmp_maint     = st.number_input("Maintenance & Repairs ($)", min_value=0.0, value=800.0,  step=50.0,           key=f"cmp_exp_maint_{i}")
-                cmp_other_lbl = st.text_input("Other description", value="", placeholder="e.g. Pest inspection", key=f"cmp_exp_other_lbl_{i}")
-                cmp_other     = st.number_input("Other ($)",                 min_value=0.0, value=0.0,    step=50.0,           key=f"cmp_exp_other_{i}")
-                expenses      = cmp_council + cmp_insurance + cmp_water + cmp_pm + cmp_bc + cmp_maint + cmp_other
-                st.markdown(f"**TOTAL ANNUAL EXPENSES: ${expenses:,.0f}**")
+            st.markdown("<p style='font-size:0.68rem;font-weight:700;letter-spacing:0.12em;color:#9CA3AF;margin:1rem 0 0.4rem;font-family:Space Grotesk,sans-serif;'>ANNUAL EXPENSES</p>", unsafe_allow_html=True)
+            cmp_council   = st.number_input("Council Rates ($)",         min_value=0.0, value=1500.0, step=50.0,             key=f"cmp_exp_council_{i}")
+            cmp_insurance = st.number_input("Landlord Insurance ($)",    min_value=0.0, value=1200.0, step=50.0,             key=f"cmp_exp_ins_{i}")
+            cmp_water     = st.number_input("Water ($)",                 min_value=0.0, value=600.0,  step=50.0,             key=f"cmp_exp_water_{i}")
+            cmp_pm_pct    = st.number_input("Property Management (%)",   min_value=0.0, max_value=20.0, value=8.0, step=0.5, key=f"cmp_exp_pm_pct_{i}")
+            cmp_pm        = (cmp_pm_pct / 100) * (rent * 52)
+            st.caption(f"Calculated: ${cmp_pm:,.0f}/yr")
+            cmp_bc        = st.number_input("Body Corporate ($)",        min_value=0.0, value=0.0,    step=100.0,            key=f"cmp_exp_bc_{i}")
+            cmp_maint     = st.number_input("Maintenance & Repairs ($)", min_value=0.0, value=800.0,  step=50.0,             key=f"cmp_exp_maint_{i}")
+            cmp_other_lbl = st.text_input("Other description", value="", placeholder="e.g. Pest inspection",                key=f"cmp_exp_other_lbl_{i}")
+            cmp_other     = st.number_input("Other ($)",                 min_value=0.0, value=0.0,    step=50.0,             key=f"cmp_exp_other_{i}")
+            expenses      = cmp_council + cmp_insurance + cmp_water + cmp_pm + cmp_bc + cmp_maint + cmp_other
+            st.markdown(f"<p style='font-size:0.8rem;font-weight:600;color:#3D5A80;margin:0.4rem 0 0.2rem;'>Total: ${expenses:,.0f}/yr</p>", unsafe_allow_html=True)
             loan_term = st.number_input("Loan term (years)", min_value=1, max_value=30, value=30, key=f"cmp_term_{i}")
             props.append({"name": name, "price": price, "rent": rent,
                           "loan": loan, "rate": rate, "expenses": expenses, "term": loan_term})
@@ -1943,7 +2096,7 @@ elif page == "Compare Properties":
         stamp          = calc_stamp_duty(p["price"], cmp_state)
         results.append({"name": p["name"], "gross_yield": gross_yield, "net_yield": net_yield,
                         "cashflow_pre": cashflow_pre, "cashflow_post": cashflow_post,
-                        "monthly": monthly, "weekly": monthly * 12 / 52,
+                        "monthly": monthly, "fortnightly": monthly * 12 / 26, "weekly": monthly * 12 / 52,
                         "equity": equity, "lvr": lvr, "stamp": stamp, "price": p["price"]})
 
     def winner(vals, higher_is_better=True):
@@ -1958,6 +2111,7 @@ elif page == "Compare Properties":
         ("Cashflow (pre-tax)",  "cashflow_pre",    True,  lambda v: f"{fmt(v)}/yr"),
         ("Cashflow (after-tax)","cashflow_post",   True,  lambda v: f"{fmt(v)}/yr"),
         ("Monthly Repayment",   "monthly",         False, lambda v: fmt(v)),
+        ("Fortnightly Repayment", "fortnightly",   False, lambda v: fmt(v)),
         ("Weekly Repayment",    "weekly",          False, lambda v: fmt(v)),
         ("Equity",              "equity",          True,  lambda v: fmt(v)),
         ("Stamp Duty",          "stamp",           False, lambda v: fmt(v)),
@@ -2110,7 +2264,7 @@ elif page == "Compare Properties":
         )
     st.markdown(f"<div class='tile-row'>{''.join(_cg_tiles)}</div>", unsafe_allow_html=True)
 
-    st.caption("Capital growth projections are estimates only. Past growth does not guarantee future performance.")
+    st.warning("Capital growth projections are estimates only. Past growth does not guarantee future performance.")
 
     # ── Save as PDF ──
     st.divider()
@@ -2119,10 +2273,11 @@ elif page == "Compare Properties":
         ("Net Yield",            "net_yield",    True,  lambda v: fmtp(v)),
         ("Cashflow (pre-tax)",   "cashflow_pre", True,  lambda v: f"{fmt(v)}/yr"),
         ("Cashflow (after-tax)", "cashflow_post",True,  lambda v: f"{fmt(v)}/yr"),
-        ("Monthly Repayment",    "monthly",      False, lambda v: fmt(v)),
-        ("Weekly Repayment",     "weekly",       False, lambda v: fmt(v)),
-        ("Equity",               "equity",       True,  lambda v: fmt(v)),
-        ("Stamp Duty",           "stamp",        False, lambda v: fmt(v)),
+        ("Monthly Repayment",      "monthly",      False, lambda v: fmt(v)),
+        ("Fortnightly Repayment",  "fortnightly",  False, lambda v: fmt(v)),
+        ("Weekly Repayment",       "weekly",       False, lambda v: fmt(v)),
+        ("Equity",                 "equity",       True,  lambda v: fmt(v)),
+        ("Stamp Duty",             "stamp",        False, lambda v: fmt(v)),
     ]
     _rpt_details = {"prepared_for": st.session_state.rpt_prepared_for, "prepared_by": st.session_state.rpt_prepared_by,
                     "date": st.session_state.rpt_date, "notes": st.session_state.rpt_notes}
