@@ -631,18 +631,28 @@ st.markdown("""
         /* Taller header on mobile — adjust app body offset to match */
         .stApp { margin-top: 84px !important; }
 
-        /* Sidebar toggle arrows: push below the fixed header so they're visible */
+        /* Sidebar toggle arrows: sit ABOVE the fixed header (z-index > 999999) */
         [data-testid="collapsedControl"] {
-            top: 92px !important;
-            z-index: 99998 !important;
+            position: fixed !important;
+            top: 90px !important;
+            z-index: 1000001 !important;
         }
-        [data-testid="stSidebar"] {
+        [data-testid="collapsedControl"] button {
+            z-index: 1000001 !important;
+        }
+        /* Sidebar open: start below the header */
+        section[data-testid="stSidebar"] {
+            position: fixed !important;
             top: 84px !important;
             height: calc(100vh - 84px) !important;
+            z-index: 1000000 !important;
         }
         /* Close button inside open sidebar */
-        [data-testid="stSidebarCollapseButton"] {
-            top: 92px !important;
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="stSidebarCollapseButton"] button {
+            position: fixed !important;
+            top: 90px !important;
+            z-index: 1000001 !important;
         }
     }
 
