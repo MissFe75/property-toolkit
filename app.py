@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -51,6 +52,38 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ── Mobile sidebar toggle ──────────────────────────────────────────────────
+# CSS can't fix this: after navigation Streamlit removes collapsedControl
+# from the DOM entirely. We inject a persistent custom button via JS that
+# survives re-renders by living on document.body (outside React's tree).
+components.html("""
+<script>
+(function() {
+    var d;
+    try { d = window.parent.document; } catch(e) { return; }
+
+    function createBtn() {
+        if (d.getElementById('pc-mob-toggle')) return;
+        var btn = d.createElement('button');
+        btn.id = 'pc-mob-toggle';
+        btn.setAttribute('aria-label', 'Toggle navigation');
+        btn.innerHTML = '&#9776;';
+        btn.style.cssText = 'position:fixed;left:0;top:84px;z-index:9999999;background:#3D5A80;color:white;font-size:20px;border:none;width:44px;height:44px;border-radius:0 8px 8px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:2px 2px 8px rgba(0,0,0,0.25);';
+        btn.onclick = function() {
+            var open  = d.querySelector('[data-testid="collapsedControl"] button');
+            var close = d.querySelector('[data-testid="stSidebarCollapseButton"] button');
+            if (open)  { open.click();  return; }
+            if (close) { close.click(); return; }
+        };
+        d.body.appendChild(btn);
+    }
+
+    createBtn();
+    setInterval(createBtn, 500);
+})();
+</script>
+""", height=1, width=0)
 
 st.markdown("""
 <style>
@@ -638,42 +671,12 @@ st.markdown("""
         /* Taller header on mobile — adjust app body offset to match */
         .stApp { margin-top: 84px !important; }
 
-        /* Sidebar toggle — pinned to left edge below the fixed header */
-        [data-testid="collapsedControl"] {
-            position: fixed !important;
-            left: 0 !important;
-            top: 84px !important;
-            z-index: 1000001 !important;
-        }
-        [data-testid="collapsedControl"] button {
-            background: #3D5A80 !important;
-            border-radius: 0 8px 8px 0 !important;
-            min-width: 44px !important;
-            min-height: 44px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        [data-testid="collapsedControl"] button svg,
-        [data-testid="collapsedControl"] button svg * {
-            stroke: #ffffff !important;
-            fill: #ffffff !important;
-        }
-        /* Close button when sidebar is open */
-        [data-testid="stSidebarCollapseButton"] {
-            position: fixed !important;
-            left: 0 !important;
-            top: 84px !important;
-            z-index: 1000001 !important;
-        }
+        /* Style the native close button inside the open sidebar */
         [data-testid="stSidebarCollapseButton"] button {
             background: #3D5A80 !important;
-            border-radius: 0 8px 8px 0 !important;
+            border-radius: 8px !important;
             min-width: 44px !important;
             min-height: 44px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
         }
         [data-testid="stSidebarCollapseButton"] button svg,
         [data-testid="stSidebarCollapseButton"] button svg * {
