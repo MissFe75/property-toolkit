@@ -22,9 +22,9 @@ st.set_page_config(
 st.markdown("""
 <style>
 @media (max-width: 600px) {
-    .pc-banner { padding: 0 1rem !important; }
-    .pc-tagline { display: none !important; }
+    .pc-banner { padding: 0 1rem !important; height: 84px !important; }
     .pc-name { font-size: 18px !important; }
+    .pc-tagline { font-size: 10.5px !important; line-height: 1.4 !important; white-space: normal !important; }
 }
 </style>
 <div class="pc-banner" style="
@@ -628,18 +628,21 @@ st.markdown("""
         /* Plotly: hide the modebar toolbar on mobile to stop it overlapping the title */
         .modebar-container { display: none !important; }
 
-        /* Sidebar toggle arrows: push below the fixed 72px header so they're visible */
+        /* Taller header on mobile — adjust app body offset to match */
+        .stApp { margin-top: 84px !important; }
+
+        /* Sidebar toggle arrows: push below the fixed header so they're visible */
         [data-testid="collapsedControl"] {
-            top: 80px !important;
+            top: 92px !important;
             z-index: 99998 !important;
         }
         [data-testid="stSidebar"] {
-            top: 72px !important;
-            height: calc(100vh - 72px) !important;
+            top: 84px !important;
+            height: calc(100vh - 84px) !important;
         }
         /* Close button inside open sidebar */
         [data-testid="stSidebarCollapseButton"] {
-            top: 80px !important;
+            top: 92px !important;
         }
     }
 
