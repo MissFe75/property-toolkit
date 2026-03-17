@@ -20,7 +20,14 @@ st.set_page_config(
 )
 
 st.markdown("""
-<div style="
+<style>
+@media (max-width: 600px) {
+    .pc-banner { padding: 0 1rem !important; }
+    .pc-tagline { display: none !important; }
+    .pc-name { font-size: 18px !important; }
+}
+</style>
+<div class="pc-banner" style="
     width:100%; background:#F5F0E8;
     border-bottom:1px solid rgba(61,90,128,0.12);
     display:flex; align-items:center; justify-content:space-between;
@@ -28,11 +35,11 @@ st.markdown("""
     position:fixed; top:0; left:0; right:0; z-index:999999;
     margin:0; box-sizing:border-box;
 ">
-    <div style="display:flex;flex-direction:row;align-items:center;gap:0.6rem;text-decoration:none;">
-        <svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#3D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>
-        <div style="display:flex;flex-direction:column;line-height:1.2;gap:1px;">
-            <span style="font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:#3D5A80;letter-spacing:-0.025em;">Property Compass</span>
-            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital &nbsp;·&nbsp; Calculators for buying and investing in Aussie property</span>
+    <div style="display:flex;flex-direction:row;align-items:center;gap:0.6rem;text-decoration:none;min-width:0;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#3D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round' style="flex-shrink:0;"><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>
+        <div style="display:flex;flex-direction:column;line-height:1.2;gap:1px;min-width:0;">
+            <span class="pc-name" style="font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:#3D5A80;letter-spacing:-0.025em;">Property Compass</span>
+            <span class="pc-tagline" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital &nbsp;·&nbsp; Calculators for buying and investing in Aussie property</span>
         </div>
     </div>
 </div>
@@ -620,6 +627,20 @@ st.markdown("""
 
         /* Plotly: hide the modebar toolbar on mobile to stop it overlapping the title */
         .modebar-container { display: none !important; }
+
+        /* Sidebar toggle arrows: push below the fixed 72px header so they're visible */
+        [data-testid="collapsedControl"] {
+            top: 80px !important;
+            z-index: 99998 !important;
+        }
+        [data-testid="stSidebar"] {
+            top: 72px !important;
+            height: calc(100vh - 72px) !important;
+        }
+        /* Close button inside open sidebar */
+        [data-testid="stSidebarCollapseButton"] {
+            top: 80px !important;
+        }
     }
 
     /* ── p & label text ── */
