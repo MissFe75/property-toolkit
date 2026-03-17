@@ -21,10 +21,17 @@ st.set_page_config(
 
 st.markdown("""
 <style>
+/* Desktop: hide the mobile line break */
+.pc-tagline-br { display: none; }
+
 @media (max-width: 600px) {
     .pc-banner { padding: 0 1rem !important; height: 84px !important; }
     .pc-name { font-size: 18px !important; }
     .pc-tagline { font-size: 10.5px !important; line-height: 1.4 !important; white-space: normal !important; }
+    /* Hide "by Sextant Digital ·" so tagline starts with "Calculators" */
+    .pc-tagline-prefix { display: none !important; }
+    /* Show the line break — "Aussie property" drops to its own line */
+    .pc-tagline-br { display: inline !important; }
 }
 </style>
 <div class="pc-banner" style="
@@ -39,7 +46,7 @@ st.markdown("""
         <svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#3D5A80' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round' style="flex-shrink:0;"><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>
         <div style="display:flex;flex-direction:column;line-height:1.2;gap:1px;min-width:0;">
             <span class="pc-name" style="font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:#3D5A80;letter-spacing:-0.025em;">Property Compass</span>
-            <span class="pc-tagline" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;">by Sextant Digital &nbsp;·&nbsp; Calculators for buying and investing in Aussie property</span>
+            <span class="pc-tagline" style="font-family:'Inter',sans-serif;font-size:13px;font-weight:300;color:#3D5A80;letter-spacing:0.04em;"><span class="pc-tagline-prefix">by Sextant Digital &nbsp;·&nbsp; </span>Calculators for buying and investing in<br class="pc-tagline-br"> Aussie property</span>
         </div>
     </div>
 </div>
@@ -631,28 +638,47 @@ st.markdown("""
         /* Taller header on mobile — adjust app body offset to match */
         .stApp { margin-top: 84px !important; }
 
-        /* Sidebar toggle arrows: sit ABOVE the fixed header (z-index > 999999) */
+        /* Sidebar toggle — pinned to left edge below the fixed header */
         [data-testid="collapsedControl"] {
             position: fixed !important;
-            top: 90px !important;
+            left: 0 !important;
+            top: 84px !important;
             z-index: 1000001 !important;
         }
         [data-testid="collapsedControl"] button {
-            z-index: 1000001 !important;
+            background: #3D5A80 !important;
+            border-radius: 0 8px 8px 0 !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
-        /* Sidebar open: start below the header */
-        section[data-testid="stSidebar"] {
+        [data-testid="collapsedControl"] button svg,
+        [data-testid="collapsedControl"] button svg * {
+            stroke: #ffffff !important;
+            fill: #ffffff !important;
+        }
+        /* Close button when sidebar is open */
+        [data-testid="stSidebarCollapseButton"] {
             position: fixed !important;
+            left: 0 !important;
             top: 84px !important;
-            height: calc(100vh - 84px) !important;
-            z-index: 1000000 !important;
-        }
-        /* Close button inside open sidebar */
-        [data-testid="stSidebarCollapseButton"],
-        [data-testid="stSidebarCollapseButton"] button {
-            position: fixed !important;
-            top: 90px !important;
             z-index: 1000001 !important;
+        }
+        [data-testid="stSidebarCollapseButton"] button {
+            background: #3D5A80 !important;
+            border-radius: 0 8px 8px 0 !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        [data-testid="stSidebarCollapseButton"] button svg,
+        [data-testid="stSidebarCollapseButton"] button svg * {
+            stroke: #ffffff !important;
+            fill: #ffffff !important;
         }
     }
 
