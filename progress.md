@@ -1,6 +1,14 @@
 # Property Compass — Project Progress
 Last updated: 17 March 2026 (evening)
 
+## How To Help Me
+- I am a complete beginner — I have never coded before
+- Always explain things simply and casually
+- Be funny and encouraging
+- Never assume I know technical terms — explain them!
+- Always end planning sessions with a "Ready to use instruction" I can copy straight into Claude Code
+- At the start of every session, check progress.md in Desktop/property-toolkit/ for a summary of where we're up to
+
 ## About
 - Owner: Fiona Graham (Miss Fe!)
 - Business: Sextant Digital
@@ -114,4 +122,4 @@ Last updated: 17 March 2026 (evening)
 
 ---
 
-**📋 READY TO USE INSTRUCTION — copy into Claude Code:**
+
